@@ -1,0 +1,8 @@
+name: ColorMatch
+main: com.comze_instancelabs.colormatch.Main
+version: 1.0
+author: instancelabs
+commands:
+   cm:
+      description: Main command
+      usage: /cm [action]
