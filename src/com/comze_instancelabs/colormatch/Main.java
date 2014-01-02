@@ -1,5 +1,6 @@
 package com.comze_instancelabs.colormatch;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -59,7 +60,36 @@ public class Main extends JavaPlugin implements Listener {
 	public void onEnable(){
 		getServer().getPluginManager().registerEvents(this, this);
 		
+		getConfig().options().header("I recommend you to set auto_updating to true for possible future bugfixes.");
+		getConfig().addDefault("config.auto_updating", true);
+		getConfig().addDefault("config.rounds_per_game", 10);
+		getConfig().addDefault("config.min_players", 4);
+		getConfig().addDefault("config.use_economy", true);
+		getConfig().addDefault("config.money_reward", 30);
+		getConfig().addDefault("config.itemid", 264); // diamond
+		getConfig().addDefault("config.itemamount", 1);
+		getConfig().options().copyDefaults(true);
+		this.saveConfig();
 		
+		getConfigVars();
+		
+		try{
+			Metrics metrics = new Metrics(this);
+			metrics.start();
+		} catch (IOException e) { }
+		
+		if(getConfig().getBoolean("config.auto_updating")){
+        	Updater updater = new Updater(this, TODO, this.getFile(), Updater.UpdateType.DEFAULT, false);
+        }
+	}
+	
+	public void getConfigVars(){
+		rounds_per_game = getConfig().getInt("config.rounds_per_game");
+		minplayers = getConfig().getInt("config.min_players");
+		reward = getConfig().getInt("config.money_reward");
+		itemid = getConfig().getInt("config.itemid");
+		itemamount = getConfig().getInt("config.itemamount");
+		economy = getConfig().getBoolean("config.use_economy");
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -179,6 +209,11 @@ public class Main extends JavaPlugin implements Listener {
 							}, 10);	
 						}
 					}
+				} else if(action.equalsIgnoreCase("reload")){
+					if(sender.hasPermission("colormatch.reload")){
+						this.reloadConfig();
+						getConfigVars();	
+					}
 				}else{
 					sender.sendMessage("§6ColorMatch §2help:");
 					sender.sendMessage("§2To §6setup the main lobby §2, type in §c/cm setmainlobby");
@@ -217,7 +252,7 @@ public class Main extends JavaPlugin implements Listener {
 					p.sendMessage("§3You fell! Type §6/cm leave §3to leave.");
 				}
 			}
-			if(event.getPlayer().getLocation().getBlockY() < getSpawn(arenap_.get(event.getPlayer())).getBlockY()){
+			if(event.getPlayer().getLocation().getBlockY() < getSpawn(arenap_.get(event.getPlayer())).getBlockY() - 2){
 				lost.put(event.getPlayer(), arenap.get(event.getPlayer()));
 				final Player p__ = event.getPlayer();
 				final String arena = arenap.get(event.getPlayer());
@@ -363,6 +398,8 @@ public class Main extends JavaPlugin implements Listener {
 			}
 		}, 5);
 		
+		lost.remove(p);
+
 		String arena = arenap.get(p);
 
 		if (arenap.containsKey(p)) {
