@@ -48,12 +48,12 @@ public class Main extends JavaPlugin implements Listener {
 
 	int rounds_per_game = 10;
 	int minplayers = 4;
+
 	
+	boolean economy = true;
+	int reward = 0;
 	int itemid = 0;
 	int itemamount = 0;
-	
-	int money = 0;
-	boolean economy = false;
 	
 	@Override
 	public void onEnable(){
@@ -179,6 +179,15 @@ public class Main extends JavaPlugin implements Listener {
 							}, 10);	
 						}
 					}
+				}else{
+					sender.sendMessage("§6ColorMatch §2help:");
+					sender.sendMessage("§2To §6setup the main lobby §2, type in §c/cm setmainlobby");
+					sender.sendMessage("§2To §6setup §2a new arena, type in the following commands:");
+					sender.sendMessage("§2/cm createarena [name]");
+					sender.sendMessage("§2/cm setup [name]");
+					sender.sendMessage("");
+					sender.sendMessage("§2You can join with §c/cm join [name] §2and leave with §c/cm leave§2.");
+					sender.sendMessage("§2You can force an arena to start with §c/cm start [name]§2.");
 				}
 			}
 			return true;
