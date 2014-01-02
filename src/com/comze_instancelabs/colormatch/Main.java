@@ -49,23 +49,32 @@ public class Main extends JavaPlugin implements Listener {
 	int rounds_per_game = 10;
 	int minplayers = 4;
 	
+	int itemid = 0;
+	int itemamount = 0;
+	
+	int money = 0;
+	boolean economy = false;
+	
 	@Override
 	public void onEnable(){
 		getServer().getPluginManager().registerEvents(this, this);
+		
+		
 	}
 	
-	public boolean onCommand(CommandSender sender, Command cmd, String label,
-			String[] args) {
-		if (cmd.getName().equalsIgnoreCase("cm")) {
+	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+		if (cmd.getName().equalsIgnoreCase("cm") || cmd.getName().equalsIgnoreCase("colormatch")) {
 			if (args.length > 0) {
 				String action = args[0];
 				if (action.equalsIgnoreCase("createarena")) {
 					// create arena
 					if (args.length > 1) {
-						String arenaname = args[1];
-						getConfig().set(arenaname + ".name", arenaname);
-						this.saveConfig();
-						sender.sendMessage("§2Successfully saved arena.");
+						if(sender.hasPermission("colormatch.setup")){
+							String arenaname = args[1];
+							getConfig().set(arenaname + ".name", arenaname);
+							this.saveConfig();
+							sender.sendMessage("§2Successfully saved arena.");	
+						}
 					}
 				} /*
 				 * else if (action.equalsIgnoreCase("setspawn")) { if
@@ -80,53 +89,59 @@ public class Main extends JavaPlugin implements Listener {
 				 * sender.sendMessage("§2Successfully saved spawn."); } }
 				 */else if (action.equalsIgnoreCase("setlobby")) {
 					if (args.length > 1) {
-						Player p = (Player) sender;
-						String arenaname = args[1];
-						getConfig().set(arenaname + ".lobby.world",
-								p.getWorld().getName());
-						getConfig().set(arenaname + ".lobby.loc.x",
-								p.getLocation().getBlockX());
-						getConfig().set(arenaname + ".lobby.loc.y",
-								p.getLocation().getBlockY());
-						getConfig().set(arenaname + ".lobby.loc.z",
-								p.getLocation().getBlockZ());
-						this.saveConfig();
-						sender.sendMessage("§2Successfully saved lobby.");
+						if(sender.hasPermission("colormatch.setup")){
+							Player p = (Player) sender;
+							String arenaname = args[1];
+							getConfig().set(arenaname + ".lobby.world",
+									p.getWorld().getName());
+							getConfig().set(arenaname + ".lobby.loc.x",
+									p.getLocation().getBlockX());
+							getConfig().set(arenaname + ".lobby.loc.y",
+									p.getLocation().getBlockY());
+							getConfig().set(arenaname + ".lobby.loc.z",
+									p.getLocation().getBlockZ());
+							this.saveConfig();
+							sender.sendMessage("§2Successfully saved lobby.");	
+						}
 					}
 				} else if (action.equalsIgnoreCase("setup")) {
 					if (args.length > 1) {
-						Player p = (Player) sender;
-						String arenaname = args[1];
-						getConfig().set(arenaname + ".spawn.world",
-								p.getWorld().getName());
-						getConfig().set(arenaname + ".spawn.loc.x",
-								p.getLocation().getBlockX());
-						getConfig().set(arenaname + ".spawn.loc.y",
-								p.getLocation().getBlockY());
-						getConfig().set(arenaname + ".spawn.loc.z",
-								p.getLocation().getBlockZ());
-						this.saveConfig();
-						sender.sendMessage("§6Successfully saved spawn. Now setting up, may §2lag§6 a little bit.");
-						setup(p.getLocation(), this, arenaname);
+						if(sender.hasPermission("colormatch.setup")){
+							Player p = (Player) sender;
+							String arenaname = args[1];
+							getConfig().set(arenaname + ".spawn.world",
+									p.getWorld().getName());
+							getConfig().set(arenaname + ".spawn.loc.x",
+									p.getLocation().getBlockX());
+							getConfig().set(arenaname + ".spawn.loc.y",
+									p.getLocation().getBlockY());
+							getConfig().set(arenaname + ".spawn.loc.z",
+									p.getLocation().getBlockZ());
+							this.saveConfig();
+							sender.sendMessage("§6Successfully saved spawn. Now setting up, may §2lag§6 a little bit.");
+							setup(p.getLocation(), this, arenaname);	
+						}
 					}
 				} else if (action.equalsIgnoreCase("setmainlobby")) {
-					Player p = (Player) sender;
-					getConfig().set("mainlobby.world",
-							p.getWorld().getName());
-					getConfig().set("mainlobby.loc.x",
-							p.getLocation().getBlockX());
-					getConfig().set("mainlobby.loc.y",
-							p.getLocation().getBlockY());
-					getConfig().set("mainlobby.loc.z",
-							p.getLocation().getBlockZ());
-					this.saveConfig();
-					sender.sendMessage("§2Successfully saved main lobby.");
+					if(sender.hasPermission("colormatch.setup")){
+						Player p = (Player) sender;
+						getConfig().set("mainlobby.world",
+								p.getWorld().getName());
+						getConfig().set("mainlobby.loc.x",
+								p.getLocation().getBlockX());
+						getConfig().set("mainlobby.loc.y",
+								p.getLocation().getBlockY());
+						getConfig().set("mainlobby.loc.z",
+								p.getLocation().getBlockZ());
+						this.saveConfig();
+						sender.sendMessage("§2Successfully saved main lobby.");	
+					}
 				} else if (action.equalsIgnoreCase("leave")) {
 					Player p = (Player) sender;
 					if (arenap.containsKey(p)) {
 						leaveArena(p);
 					} else {
-						p.sendMessage("§cYo dawg you don't seem to be in an arena right now.");
+						p.sendMessage("§cYou don't seem to be in an arena right now.");
 					}
 				} else if(action.equalsIgnoreCase("join")){
 					if(args.length > 1){
@@ -145,22 +160,24 @@ public class Main extends JavaPlugin implements Listener {
 					}
 				} else if(action.equalsIgnoreCase("start")){
 					if(args.length > 1){
-						final String arena = args[1];
-						for (Player p_ : arenap.keySet()) {
-							if (arenap.get(p_).equalsIgnoreCase(arena)) {
-								final Player p__ = p_;
-								Bukkit.getScheduler().runTaskLater(this, new Runnable() {
-									public void run() {
-										p__.teleport(getSpawnForPlayer(arena));
-									}
-								}, 5);
+						if(sender.hasPermission("colormatch.start")){
+							final String arena = args[1];
+							for (Player p_ : arenap.keySet()) {
+								if (arenap.get(p_).equalsIgnoreCase(arena)) {
+									final Player p__ = p_;
+									Bukkit.getScheduler().runTaskLater(this, new Runnable() {
+										public void run() {
+											p__.teleport(getSpawnForPlayer(arena));
+										}
+									}, 5);
+								}
 							}
+							Bukkit.getScheduler().runTaskLater(this, new Runnable() {
+								public void run() {
+									start(arena);
+								}
+							}, 10);	
 						}
-						Bukkit.getScheduler().runTaskLater(this, new Runnable() {
-							public void run() {
-								start(arena);
-							}
-						}, 10);
 					}
 				}
 			}

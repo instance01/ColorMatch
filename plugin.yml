@@ -6,3 +6,6 @@ commands:
    cm:
       description: Main command
       usage: /cm [action]
+   colormatch:
+      description: Main command
+      usage: /cm [action]
