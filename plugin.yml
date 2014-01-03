@@ -2,10 +2,11 @@ name: ColorMatch
 main: com.comze_instancelabs.colormatch.Main
 version: 1.0
 author: instancelabs
+softdepend: [Vault]
 commands:
    cm:
       description: Main command
       usage: /cm [action]
    colormatch:
       description: Main command
-      usage: /cm [action]
+      usage: /colormatch [action]

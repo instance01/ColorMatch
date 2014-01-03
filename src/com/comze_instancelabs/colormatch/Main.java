@@ -6,6 +6,9 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
 
+import net.milkbowl.vault.economy.Economy;
+import net.milkbowl.vault.economy.EconomyResponse;
+
 import org.bukkit.Bukkit;
 import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
@@ -25,6 +28,7 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.material.Wool;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -35,13 +39,16 @@ public class Main extends JavaPlugin implements Listener {
 	 * 
 	 * SETUP
 	 * 
-	 * mp setmainlobby
+	 * cm setmainlobby
 	 * 
 	 * for each new arena:
 	 * 
-	 * mp setlobby arena mp setup arena
+	 * cm setlobby arena
+	 * cm setup arena
+	 * 
 	 */
-
+	public static Economy econ = null;
+	
 	public static HashMap<Player, String> arenap = new HashMap<Player, String>();
 	public static HashMap<Player, String> arenap_ = new HashMap<Player, String>();
 	public static HashMap<Player, ItemStack[]> pinv = new HashMap<Player, ItemStack[]>();
@@ -52,9 +59,9 @@ public class Main extends JavaPlugin implements Listener {
 
 	
 	boolean economy = true;
-	int reward = 0;
-	int itemid = 0;
-	int itemamount = 0;
+	int reward = 30;
+	int itemid = 264;
+	int itemamount = 1;
 	
 	@Override
 	public void onEnable(){
@@ -79,9 +86,29 @@ public class Main extends JavaPlugin implements Listener {
 		} catch (IOException e) { }
 		
 		if(getConfig().getBoolean("config.auto_updating")){
-        	Updater updater = new Updater(this, TODO, this.getFile(), Updater.UpdateType.DEFAULT, false);
+        	Updater updater = new Updater(this, 71774, this.getFile(), Updater.UpdateType.DEFAULT, false);
         }
+		
+
+		if(economy){
+			if (!setupEconomy()) {
+	            getLogger().severe(String.format("[%s] - No iConomy dependency found! Disabling Economy.", getDescription().getName()));
+	            economy = false;
+	        }
+		}
 	}
+	
+	private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return econ != null;
+    }
 	
 	public void getConfigVars(){
 		rounds_per_game = getConfig().getInt("config.rounds_per_game");
@@ -214,8 +241,17 @@ public class Main extends JavaPlugin implements Listener {
 						this.reloadConfig();
 						getConfigVars();	
 					}
-				}else{
-					sender.sendMessage("§6ColorMatch §2help:");
+				} else if(action.equalsIgnoreCase("list")){
+					if(sender.hasPermission("colormatch.list")){
+						sender.sendMessage("§6-= Arenas =-");
+						for(String arena : getConfig().getKeys(false)){
+							if(!arena.equalsIgnoreCase("mainlobby")){
+								sender.sendMessage("§2" + arena);
+							}
+						}
+					}
+				} else {
+					sender.sendMessage("§6-= ColorMatch §2help: §6=-");
 					sender.sendMessage("§2To §6setup the main lobby §2, type in §c/cm setmainlobby");
 					sender.sendMessage("§2To §6setup §2a new arena, type in the following commands:");
 					sender.sendMessage("§2/cm createarena [name]");
@@ -391,6 +427,9 @@ public class Main extends JavaPlugin implements Listener {
 		return false;
 	}
 
+	
+	public HashMap<Player, Boolean> winner = new HashMap<Player, Boolean>();
+	
 	public void leaveArena(final Player p) {
 		Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 			public void run() {
@@ -410,6 +449,19 @@ public class Main extends JavaPlugin implements Listener {
 		}
 		
 		p.getInventory().setContents(pinv.get(p));
+		
+		//TODO try out
+		if(winner.containsKey(p)){
+			if(economy){
+				EconomyResponse r = econ.depositPlayer(p.getName(), getConfig().getDouble("config.money_reward_per_game"));
+    			if(!r.transactionSuccess()) {
+    				getServer().getPlayer(p.getName()).sendMessage(String.format("An error occured: %s", r.errorMessage));
+                }
+			}else{
+				p.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), itemamount));
+				p.updateInventory();
+			}
+		}
 		
 		int count = 0;
 		for (Player p_ : arenap.keySet()) {
@@ -669,8 +721,7 @@ public class Main extends JavaPlugin implements Listener {
 
 		for (int i = 0; i < 64; i++) {
 			for (int j = 0; j < 64; j++) {
-				Block b = start.getWorld().getBlockAt(
-						new Location(start.getWorld(), x + i, y, z + j));
+				Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x + i, y, z + j));
 				if (b.getData() != data) {
 					// b.setType(Material.AIR);
 					mbu.setBlock(x + i, y, z + j, 0);
@@ -696,6 +747,8 @@ public class Main extends JavaPlugin implements Listener {
 			}
 		}
 		
+		winner.clear();
+		
 		Sign s = this.getSignFromArena(arena);
 		if(s != null){
 			s.setLine(1, "§2[Join]");
@@ -713,9 +766,8 @@ public class Main extends JavaPlugin implements Listener {
 			if(arenap.get(p).equalsIgnoreCase(arena)){
 				if(!lost.containsKey(p)){
 					// this player is a winner
-					p.sendMessage("§2You won this round, awesome man! Here, enjoy your diamond.");
-					p.getInventory().addItem(new ItemStack(Material.DIAMOND));
-					p.updateInventory();
+					p.sendMessage("§2You won this round, awesome man! Here, enjoy your reward.");
+					winner.put(p, true);
 				}else{
 					lost.remove(p);
 				}
