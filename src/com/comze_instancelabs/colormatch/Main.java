@@ -203,13 +203,20 @@ public class Main extends JavaPlugin implements Listener {
 				} else if(action.equalsIgnoreCase("join")){
 					if(args.length > 1){
 						if(isValidArena(args[1])){
-							Sign s = this.getSignFromArena(args[1]);
+							Sign s = null;
+							try{
+								s = this.getSignFromArena(args[1]);
+							}catch(Exception e){
+								getLogger().warning("No sign found for arena " + args[1] + ". May lead to errors.");
+							}
 							if(s != null){
 								if(s.getLine(1).equalsIgnoreCase("§2[join]")){
 									joinLobby((Player)sender, args[1]);
 								}else{
 									sender.sendMessage("§cThe arena appears to be ingame.");
 								}
+							}else{
+								sender.sendMessage("§cThe arena appears to be invalid, because a join sign is missing.");
 							}
 						}else{
 							sender.sendMessage("§cThe arena appears to be invalid.");
@@ -341,7 +348,7 @@ public class Main extends JavaPlugin implements Listener {
         Player p = event.getPlayer();
         if(event.getLine(0).toLowerCase().equalsIgnoreCase("colormatch")){
         	if(event.getPlayer().hasPermission("cm.sign")){
-	        	event.setLine(0, "§l§6ColorMatch");
+	        	event.setLine(0, "§6§lColorMatch");
 	        	if(!event.getLine(2).equalsIgnoreCase("")){
 	        		String arena = event.getLine(2);
 	        		if(isValidArena(arena)){
@@ -420,8 +427,7 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	public boolean isValidArena(String arena) {
-		if (getConfig().isSet(arena + ".spawn")
-				&& getConfig().isSet(arena + ".lobby")) {
+		if (getConfig().isSet(arena + ".spawn") && getConfig().isSet(arena + ".lobby")) {
 			return true;
 		}
 		return false;
@@ -511,11 +517,16 @@ public class Main extends JavaPlugin implements Listener {
 			}, 10);
 		}
 		
-		Sign s = this.getSignFromArena(arena);
-		if(s != null){
-			s.setLine(3, Integer.toString(count) + "/" + Integer.toString(this.minplayers));
-			s.update();
+		try{
+			Sign s = this.getSignFromArena(arena);
+			if(s != null){
+				s.setLine(3, Integer.toString(count) + "/" + Integer.toString(this.minplayers));
+				s.update();
+			}
+		}catch(Exception e){
+			getLogger().warning("You forgot to set a sign for arena " + arena + "! This may lead to errors.");
 		}
+		
 	}
 
 	// COPIED FROM MINIGAMES PARTY
