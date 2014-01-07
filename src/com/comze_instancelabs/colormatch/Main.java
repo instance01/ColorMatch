@@ -53,7 +53,11 @@ public class Main extends JavaPlugin implements Listener {
 	public static HashMap<Player, String> arenap_ = new HashMap<Player, String>();
 	public static HashMap<Player, ItemStack[]> pinv = new HashMap<Player, ItemStack[]>();
 	public static HashMap<Player, String> lost = new HashMap<Player, String>();
-
+	public static HashMap<Player, Integer> xpsecp = new HashMap<Player, Integer>();
+	public static HashMap<String, Integer> a_round = new HashMap<String, Integer>();
+	public static HashMap<String, Integer> a_n = new HashMap<String, Integer>();
+	public static HashMap<String, Integer> a_currentw = new HashMap<String, Integer>();
+	
 	int rounds_per_game = 10;
 	int minplayers = 4;
 
@@ -533,6 +537,7 @@ public class Main extends JavaPlugin implements Listener {
 	public static void setup(Location start, Main main, String name_) {
 		int x = start.getBlockX() - 32;
 		int y = start.getBlockY();
+		int y_ = start.getBlockY() - 4;
 		int z = start.getBlockZ() - 32;
 
 		int current = 0;
@@ -549,8 +554,9 @@ public class Main extends JavaPlugin implements Listener {
 
 				for (int i_ = 0; i_ < 4; i_++) {
 					for (int j_ = 0; j_ < 4; j_++) {
-						Block b = start.getWorld().getBlockAt(
-								new Location(start.getWorld(), x_ + i_, y, z_ + j_));
+						Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x_ + i_, y, z_ + j_));
+						Block b_ = start.getWorld().getBlockAt(new Location(start.getWorld(), x_ + i_, y_, z_ + j_));
+						b_.setType(Material.GLOWSTONE);
 						b.setType(Material.WOOL);
 						b.setData(colors.get(current).getData());
 					}
@@ -567,14 +573,18 @@ public class Main extends JavaPlugin implements Listener {
 			DyeColor.GREEN, DyeColor.YELLOW, DyeColor.ORANGE));
 	static Random r = new Random();
 
-	long n = 0;
-	int currentw = 0;
-
-	int rounds = 0;
+	//TODO PUT THESE INTO A HASHMAP -> MULTIPLE ARENAS WONT WORK OTHERWISE
+	//long n = 0;
+	//int currentw = 0;
 	
 	final public HashMap<String, BukkitTask> h = new HashMap<String, BukkitTask>();
 	
 	public BukkitTask start(final String arena) {
+		//setup arena
+		a_round.put(arena, 0);
+		a_n.put(arena, 0);
+		a_currentw.put(arena, 0);
+		
 		// setup ints arraylist
 		getAll(getSpawn(arena));
 		
@@ -585,61 +595,80 @@ public class Main extends JavaPlugin implements Listener {
 		}
 		
 		BukkitTask id__ = null;
-		id__ = Bukkit.getServer().getScheduler()
-				.runTaskTimerAsynchronously(m, new Runnable() {
-					@Override
-					public void run() {
-						rounds ++;
-						
-						if(rounds > rounds_per_game){
-							rounds = 0;
-							stop(h.get(arena), arena);
-						}
-						
-						currentw = r.nextInt(colors.size());
-						for (Player p : arenap.keySet()) {
-							if (arenap.get(p).equalsIgnoreCase(arena)) {
-								arenap_.put(p, arena);
-								// set inventory and exp bar
-								p.getInventory().clear();
-								p.updateInventory();
-								Wool w = new Wool();
-								w.setColor(colors.get(currentw));
+		id__ = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
+			@Override
+			public void run() {
+				a_round.put(arena, a_round.get(arena) + 1);
+				int n = a_n.get(arena);
+				if(a_round.get(arena) > rounds_per_game){
+					a_round.put(arena, 0);
+					stop(h.get(arena), arena);
+				}
+				
+				final ArrayList<BukkitTask> tasks = new ArrayList<BukkitTask>();
+				
+				//currentw = r.nextInt(colors.size());
+				a_currentw.put(arena, r.nextInt(colors.size()));
+				int currentw = a_currentw.get(arena);
+				for (final Player p : arenap.keySet()) {
+					if (arenap.get(p).equalsIgnoreCase(arena)) {
+						arenap_.put(p, arena);
+						// set inventory and exp bar
+						p.getInventory().clear();
+						p.updateInventory();
+						Wool w = new Wool();
+						w.setColor(colors.get(currentw));
 
-								ItemStack wool = new ItemStack(Material.WOOL,
-										1, colors.get(currentw).getData());
-								// p.getInventory().all(wool);
-								for (int i = 0; i < 9; i++) {
-									p.getInventory().setItem(i, wool);
-								}
-								p.updateInventory();
+						p.setExp(0.97F);
+						if(!xpsecp.containsKey(p)){
+							xpsecp.put(p, 1);
+						}
+						tasks.add(Bukkit.getServer().getScheduler().runTaskTimer(m, new Runnable(){
+							public void run(){
+								int xpsec = xpsecp.get(p);
+								p.setExp(1 - (0.16F * xpsec));
+								xpsecp.put(p, xpsec + 1);
+							}
+						}, (40L -n) / 6, (40L -n) / 6));
+						
+						ItemStack wool = new ItemStack(Material.WOOL, 1, colors.get(currentw).getData());
+						// p.getInventory().all(wool);
+						for (int i = 0; i < 9; i++) {
+							p.getInventory().setItem(i, wool);
+						}
+						p.updateInventory();
+					}
+				}
+				// remove all wools except current one
+				Bukkit.getServer().getScheduler().runTaskLater(m, new Runnable() {
+					// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
+					// new Runnable(){
+					public void run() {
+						removeAllExceptOne(getSpawn(arena), arena);
+						for(BukkitTask t : tasks){
+							t.cancel();
+						}
+						for(Player p : xpsecp.keySet()){
+							if(arenap.get(p).equalsIgnoreCase(arena)){
+								xpsecp.put(p, 1);
 							}
 						}
-						// remove all wools except current one
-						Bukkit.getServer().getScheduler()
-								.runTaskLater(m, new Runnable() {
-									// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
-									// new Runnable(){
-									public void run() {
-										removeAllExceptOne(getSpawn(arena),
-												currentw);
-									}
-								}, 40L - n);
-
-						// BukkitTask id =
-						// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
-						// new Runnable() {
-						BukkitTask id = Bukkit.getServer().getScheduler()
-								.runTaskLater(m, new Runnable() {
-									@Override
-									public void run() {
-										reset(getSpawn(arena));
-									}
-								}, 120);
-						// update count
-						n -= 1;
 					}
-				}, 20, 140); // 7 seconds
+				}, 40L - n);
+
+				// BukkitTask id =
+				// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
+				// new Runnable() {
+				BukkitTask id = Bukkit.getServer().getScheduler().runTaskLater(m, new Runnable() {
+					@Override
+					public void run() {
+						reset(getSpawn(arena));
+					}
+				}, 120);
+				// update count
+				a_n.put(arena, a_n.get(arena) + 1);
+			}
+		}, 20, 140); // 7 seconds
 
 		h.put(arena, id__);
 		return id__;
@@ -670,8 +699,7 @@ public class Main extends JavaPlugin implements Listener {
 
 	public void reset(final Location start) {
 		try {
-			final MassBlockUpdate mbu = CraftMassBlockUpdate
-					.createMassBlockUpdater(this, start.getWorld());
+			final MassBlockUpdate mbu = CraftMassBlockUpdate.createMassBlockUpdater(this, start.getWorld());
 
 			mbu.setRelightingStrategy(MassBlockUpdate.RelightingStrategy.NEVER);
 
@@ -681,6 +709,7 @@ public class Main extends JavaPlugin implements Listener {
 
 			int x = start.getBlockX() - 32;
 			int y = start.getBlockY();
+			int y_ = start.getBlockY() - 4;
 			int z = start.getBlockZ() - 32;
 
 			World w = start.getWorld();
@@ -703,7 +732,7 @@ public class Main extends JavaPlugin implements Listener {
 							// Location(start.getWorld(), x_ + i_, y, z_ + j_));
 
 							mbu.setBlock(x_ + i_, y, z_ + j_, 35, current);
-
+							mbu.setBlock(x_ + i_, y_, z_ + j_, 89);
 							// b.setType(Material.WOOL);
 							// b.setData((byte)current);
 						}
@@ -711,7 +740,6 @@ public class Main extends JavaPlugin implements Listener {
 				}
 			}
 
-			// sendClientChanges(start, test);
 			mbu.notifyClients();
 
 		} catch (Exception e) {
@@ -719,16 +747,15 @@ public class Main extends JavaPlugin implements Listener {
 		}
 	}
 
-	public void removeAllExceptOne(Location start, int exception) {
-		final MassBlockUpdate mbu = CraftMassBlockUpdate
-				.createMassBlockUpdater(m, start.getWorld());
+	public void removeAllExceptOne(Location start, String arena) {
+		final MassBlockUpdate mbu = CraftMassBlockUpdate.createMassBlockUpdater(m, start.getWorld());
 
 		mbu.setRelightingStrategy(MassBlockUpdate.RelightingStrategy.NEVER);
 
 		int x = start.getBlockX() - 32;
 		int y = start.getBlockY();
 		int z = start.getBlockZ() - 32;
-		Byte data = colors.get(currentw).getData();
+		Byte data = colors.get(a_currentw.get(arena)).getData();
 
 		for (int i = 0; i < 64; i++) {
 			for (int j = 0; j < 64; j++) {
@@ -747,7 +774,7 @@ public class Main extends JavaPlugin implements Listener {
 	
 	public void stop(BukkitTask t, String arena){
 		try{
-			t.cancel();	
+			t.cancel();
 		}catch(Exception e){
 			
 		}
@@ -768,6 +795,14 @@ public class Main extends JavaPlugin implements Listener {
 		}
 		
 		h.remove(arena);
+		
+		// reset arena
+		for(Player p : xpsecp.keySet()){
+			xpsecp.put(p, 1);
+		}
+		a_round.put(arena, 0);
+		a_n.put(arena, 0);
+		a_currentw.put(arena, 0);
 		
 		reset(getSpawn(arena));
 	}
