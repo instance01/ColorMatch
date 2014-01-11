@@ -4,12 +4,14 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -24,13 +26,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Wool;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+
+import com.google.common.collect.Maps;
 
 
 public class Main extends JavaPlugin implements Listener {
@@ -49,8 +56,8 @@ public class Main extends JavaPlugin implements Listener {
 	 */
 	public static Economy econ = null;
 	
-	public static HashMap<Player, String> arenap = new HashMap<Player, String>();
-	public static HashMap<Player, String> arenap_ = new HashMap<Player, String>();
+	public static HashMap<Player, String> arenap = new HashMap<Player, String>(); // player -> arena
+	public static HashMap<String, String> arenap_ = new HashMap<String, String>(); // player -> arena
 	public static HashMap<Player, ItemStack[]> pinv = new HashMap<Player, ItemStack[]>();
 	public static HashMap<Player, String> lost = new HashMap<Player, String>();
 	public static HashMap<Player, Integer> xpsecp = new HashMap<Player, Integer>();
@@ -278,8 +285,25 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	@EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event){
+		if(arenap_.containsKey(event.getPlayer().getName())){
+			event.setCancelled(true);
+		}
+    }
+	
+	@EventHandler
+    public void onHunger(FoodLevelChangeEvent event){
+    	if(event.getEntity() instanceof Player){
+    		Player p = (Player)event.getEntity();
+    		if(arenap_.containsKey(p.getName())){
+    			event.setCancelled(true);
+    		}
+    	}
+    }
+	
+	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {
-		if (arenap_.containsKey(event.getPlayer())) {
+		if (arenap_.containsKey(event.getPlayer().getName())) {
 			if(lost.containsKey(event.getPlayer())){
 				Location l = getSpawn(lost.get(event.getPlayer()));
 				final Location spectatorlobby = new Location(l.getWorld(), l.getBlockX(), l.getBlockY() + 30, l.getBlockZ());
@@ -299,7 +323,7 @@ public class Main extends JavaPlugin implements Listener {
 					p.sendMessage("§3You fell! Type §6/cm leave §3to leave.");
 				}
 			}
-			if(event.getPlayer().getLocation().getBlockY() < getSpawn(arenap_.get(event.getPlayer())).getBlockY() - 2){
+			if(event.getPlayer().getLocation().getBlockY() < getSpawn(arenap_.get(event.getPlayer().getName())).getBlockY() - 2){
 				lost.put(event.getPlayer(), arenap.get(event.getPlayer()));
 				final Player p__ = event.getPlayer();
 				final String arena = arenap.get(event.getPlayer());
@@ -448,14 +472,15 @@ public class Main extends JavaPlugin implements Listener {
 		}, 5);
 		
 		lost.remove(p);
+		p.setAllowFlight(false);
 
 		String arena = arenap.get(p);
 
 		if (arenap.containsKey(p)) {
 			arenap.remove(p);
 		}
-		if (arenap_.containsKey(p)) {
-			arenap_.remove(p);
+		if (arenap_.containsKey(p.getName())) {
+			arenap_.remove(p.getName());
 		}
 		
 		p.getInventory().setContents(pinv.get(p));
@@ -612,7 +637,7 @@ public class Main extends JavaPlugin implements Listener {
 				int currentw = a_currentw.get(arena);
 				for (final Player p : arenap.keySet()) {
 					if (arenap.get(p).equalsIgnoreCase(arena)) {
-						arenap_.put(p, arena);
+						arenap_.put(p.getName(), arena);
 						// set inventory and exp bar
 						p.getInventory().clear();
 						p.updateInventory();
@@ -631,11 +656,15 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}, (40L -n) / 6, (40L -n) / 6));
 						
-						ItemStack wool = new ItemStack(Material.WOOL, 1, colors.get(currentw).getData());
-						// p.getInventory().all(wool);
+						DyeColor dc = colors.get(currentw);
+						ItemStack wool = new ItemStack(Material.WOOL, 1, dc.getData());
+						ItemMeta m = wool.getItemMeta();
+						m.setDisplayName(dyeToChat(dc) + dc.name());
+						wool.setItemMeta(m);
 						for (int i = 0; i < 9; i++) {
 							p.getInventory().setItem(i, wool);
 						}
+						// p.getInventory().all(wool);
 						p.updateInventory();
 					}
 				}
@@ -820,4 +849,36 @@ public class Main extends JavaPlugin implements Listener {
 			}
 		}
 	}
+	
+	
+	
+	
+	private static Map<DyeColor, ChatColor> dyeChatMap;
+    static
+    {
+            dyeChatMap = Maps.newHashMap();
+            dyeChatMap.put(DyeColor.BLACK, ChatColor.DARK_GRAY);
+            dyeChatMap.put(DyeColor.BLUE, ChatColor.DARK_BLUE);
+            dyeChatMap.put(DyeColor.BROWN, ChatColor.GOLD);
+            dyeChatMap.put(DyeColor.CYAN, ChatColor.AQUA);
+            dyeChatMap.put(DyeColor.GRAY, ChatColor.GRAY);
+            dyeChatMap.put(DyeColor.GREEN, ChatColor.DARK_GREEN);
+            dyeChatMap.put(DyeColor.LIGHT_BLUE, ChatColor.BLUE);
+            dyeChatMap.put(DyeColor.LIME, ChatColor.GREEN);
+            dyeChatMap.put(DyeColor.MAGENTA, ChatColor.LIGHT_PURPLE);
+            dyeChatMap.put(DyeColor.ORANGE, ChatColor.GOLD);
+            dyeChatMap.put(DyeColor.PINK, ChatColor.LIGHT_PURPLE);
+            dyeChatMap.put(DyeColor.PURPLE, ChatColor.DARK_PURPLE);
+            dyeChatMap.put(DyeColor.RED, ChatColor.DARK_RED);
+            dyeChatMap.put(DyeColor.SILVER, ChatColor.GRAY);
+            dyeChatMap.put(DyeColor.WHITE, ChatColor.WHITE);
+            dyeChatMap.put(DyeColor.YELLOW, ChatColor.YELLOW);
+    }
+
+    public static ChatColor dyeToChat(DyeColor dclr)
+    {
+            if (dyeChatMap.containsKey(dclr))
+                    return dyeChatMap.get(dclr);
+            return ChatColor.MAGIC;
+    }
 }
