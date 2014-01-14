@@ -207,7 +207,7 @@ public class Main extends JavaPlugin implements Listener {
 				} else if (action.equalsIgnoreCase("leave")) {
 					Player p = (Player) sender;
 					if (arenap.containsKey(p)) {
-						leaveArena(p);
+						leaveArena(p, true);
 					} else {
 						p.sendMessage("§cYou don't seem to be in an arena right now.");
 					}
@@ -273,6 +273,7 @@ public class Main extends JavaPlugin implements Listener {
 					sender.sendMessage("§2To §6setup the main lobby §2, type in §c/cm setmainlobby");
 					sender.sendMessage("§2To §6setup §2a new arena, type in the following commands:");
 					sender.sendMessage("§2/cm createarena [name]");
+					sender.sendMessage("§2/cm setlobby [name] §6 - for the waiting lobby");
 					sender.sendMessage("§2/cm setup [name]");
 					sender.sendMessage("");
 					sender.sendMessage("§2You can join with §c/cm join [name] §2and leave with §c/cm leave§2.");
@@ -308,7 +309,6 @@ public class Main extends JavaPlugin implements Listener {
 				Location l = getSpawn(lost.get(event.getPlayer()));
 				final Location spectatorlobby = new Location(l.getWorld(), l.getBlockX(), l.getBlockY() + 30, l.getBlockZ());
 				if(event.getPlayer().getLocation().getBlockY() < spectatorlobby.getBlockY() || event.getPlayer().getLocation().getBlockY() > spectatorlobby.getBlockY()){
-					//current.spectate(event.getPlayer());
 					final Player p = event.getPlayer();
 					final float b = p.getLocation().getYaw();
 					final float c = p.getLocation().getPitch();
@@ -464,14 +464,17 @@ public class Main extends JavaPlugin implements Listener {
 	
 	public HashMap<Player, Boolean> winner = new HashMap<Player, Boolean>();
 	
-	public void leaveArena(final Player p) {
+	public void leaveArena(final Player p, boolean flag) {
 		Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 			public void run() {
 				p.teleport(getMainLobby());
 			}
 		}, 5);
 		
-		lost.remove(p);
+		try{
+			lost.remove(p);
+		}catch(Exception e){}
+		
 		p.setAllowFlight(false);
 
 		String arena = arenap.get(p);
@@ -506,7 +509,9 @@ public class Main extends JavaPlugin implements Listener {
 		}
 		
 		if(count < 1){
-			stop(h.get(arena), arena);
+			if(flag){
+				stop(h.get(arena), arena);
+			}
 		}
 	}
 
@@ -622,7 +627,7 @@ public class Main extends JavaPlugin implements Listener {
 		BukkitTask id__ = null;
 		id__ = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
 			@Override
-			public void run() {
+			public void run(){
 				a_round.put(arena, a_round.get(arena) + 1);
 				int n = a_n.get(arena);
 				if(a_round.get(arena) > rounds_per_game){
@@ -810,7 +815,18 @@ public class Main extends JavaPlugin implements Listener {
 		determineWinners(arena);
 		for(Player p : arenap.keySet()){
 			if(arenap.get(p).equalsIgnoreCase(arena)){
-				leaveArena(p);
+				leaveArena(p, false);
+			}
+		}
+		
+		// bugfix
+		for(Player p : lost.keySet()){
+			if(lost.get(p).equalsIgnoreCase(arena)){
+				try{
+					leaveArena(p, false);
+				}catch(Exception e){
+					
+				}
 			}
 		}
 		
