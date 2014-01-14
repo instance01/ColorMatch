@@ -479,8 +479,10 @@ public class Main extends JavaPlugin implements Listener {
 
 		String arena = arenap.get(p);
 
-		if (arenap.containsKey(p)) {
-			arenap.remove(p);
+		if(flag){
+			if (arenap.containsKey(p)) {
+				arenap.remove(p);
+			}	
 		}
 		if (arenap_.containsKey(p.getName())) {
 			arenap_.remove(p.getName());
@@ -812,15 +814,26 @@ public class Main extends JavaPlugin implements Listener {
 		}catch(Exception e){
 			
 		}
+		
+		getLogger().info(Integer.toString(arenap.size()));
+		
+		ArrayList<Player> torem = new ArrayList<Player>();
 		determineWinners(arena);
 		for(Player p : arenap.keySet()){
 			if(arenap.get(p).equalsIgnoreCase(arena)){
 				leaveArena(p, false);
+				torem.add(p);
 			}
 		}
 		
+		for(Player p : torem){
+			arenap.remove(p);
+		}
+		torem.clear();
+		
+		
 		// bugfix
-		for(Player p : lost.keySet()){
+		/*for(Player p : lost.keySet()){
 			if(lost.get(p).equalsIgnoreCase(arena)){
 				try{
 					leaveArena(p, false);
@@ -828,7 +841,7 @@ public class Main extends JavaPlugin implements Listener {
 					
 				}
 			}
-		}
+		}*/
 		
 		winner.clear();
 		
