@@ -468,6 +468,7 @@ public class Main extends JavaPlugin implements Listener {
 		Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 			public void run() {
 				p.teleport(getMainLobby());
+				p.setFlying(false);
 			}
 		}, 5);
 		
@@ -476,6 +477,7 @@ public class Main extends JavaPlugin implements Listener {
 		}catch(Exception e){}
 		
 		p.setAllowFlight(false);
+		p.setFlying(false);
 
 		String arena = arenap.get(p);
 
@@ -814,8 +816,6 @@ public class Main extends JavaPlugin implements Listener {
 		}catch(Exception e){
 			
 		}
-		
-		getLogger().info(Integer.toString(arenap.size()));
 		
 		ArrayList<Player> torem = new ArrayList<Player>();
 		determineWinners(arena);
