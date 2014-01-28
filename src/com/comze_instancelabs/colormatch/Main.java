@@ -537,7 +537,7 @@ public class Main extends JavaPlugin implements Listener {
 				count++;
 			}
 		}
-		if (count > 3) {
+		if (count > minplayers - 1) {
 			for (Player p_ : arenap.keySet()) {
 				final Player p__ = p_;
 				if (arenap.get(p_).equalsIgnoreCase(arena)) {
