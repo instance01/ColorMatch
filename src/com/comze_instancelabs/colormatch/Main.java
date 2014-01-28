@@ -83,7 +83,7 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("config.rounds_per_game", 10);
 		getConfig().addDefault("config.min_players", 4);
 		getConfig().addDefault("config.use_economy", true);
-		getConfig().addDefault("config.money_reward", 30);
+		getConfig().addDefault("config.money_reward_per_game", 30);
 		getConfig().addDefault("config.itemid", 264); // diamond
 		getConfig().addDefault("config.itemamount", 1);
 		getConfig().options().copyDefaults(true);
@@ -346,7 +346,7 @@ public class Main extends JavaPlugin implements Listener {
 					}
 				}
 				
-				if(count == 1){
+				if(count < 2){
 					// last man standing!
 					stop(h.get(arena), arena);
 				}
@@ -528,6 +528,7 @@ public class Main extends JavaPlugin implements Listener {
 		Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 			public void run() {
 				p.teleport(getLobby(arena));
+				p.setFoodLevel(20);
 			}
 		}, 5);
 
@@ -584,8 +585,9 @@ public class Main extends JavaPlugin implements Listener {
 				int z_ = z + j * 4;
 
 				current = r.nextInt(colors.size());
-				ints.add(current);
-
+				//ints.add(current);
+				ints.add((int)colors.get(current).getData());
+				
 				for (int i_ = 0; i_ < 4; i_++) {
 					for (int j_ = 0; j_ < 4; j_++) {
 						Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x_ + i_, y, z_ + j_));
@@ -604,12 +606,9 @@ public class Main extends JavaPlugin implements Listener {
 	static ArrayList<Integer> ints = new ArrayList<Integer>();
 	static ArrayList<DyeColor> colors = new ArrayList<DyeColor>(Arrays.asList(
 			DyeColor.BLUE, DyeColor.RED, DyeColor.CYAN, DyeColor.BLACK,
-			DyeColor.GREEN, DyeColor.YELLOW, DyeColor.ORANGE));
+			DyeColor.GREEN, DyeColor.YELLOW, DyeColor.ORANGE, DyeColor.PURPLE));
 	static Random r = new Random();
 
-	//TODO PUT THESE INTO A HASHMAP -> MULTIPLE ARENAS WONT WORK OTHERWISE
-	//long n = 0;
-	//int currentw = 0;
 	
 	final public HashMap<String, BukkitTask> h = new HashMap<String, BukkitTask>();
 	
@@ -762,6 +761,9 @@ public class Main extends JavaPlugin implements Listener {
 
 					// current = r.nextInt(colors.size());
 					current = ints.get(count);
+					if(current < 1){
+						current = (int)colors.get(r.nextInt(colors.size())).getData();
+					}
 					count += 1;
 
 					for (int i_ = 0; i_ < 4; i_++) {
