@@ -30,6 +30,7 @@ import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Wool;
@@ -207,7 +208,7 @@ public class Main extends JavaPlugin implements Listener {
 				} else if (action.equalsIgnoreCase("leave")) {
 					Player p = (Player) sender;
 					if (arenap.containsKey(p)) {
-						leaveArena(p, true);
+						leaveArena(p, true, false);
 					} else {
 						p.sendMessage("§cYou don't seem to be in an arena right now.");
 					}
@@ -286,6 +287,13 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	@EventHandler
+    public void onPlayerLeave(PlayerQuitEvent event){
+		if(arenap_.containsKey(event.getPlayer().getName())){
+			leaveArena(event.getPlayer(), true, true);
+		}
+    }
+	
+	@EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent event){
 		if(arenap_.containsKey(event.getPlayer().getName())){
 			event.setCancelled(true);
@@ -315,9 +323,13 @@ public class Main extends JavaPlugin implements Listener {
 					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
 						@Override
 						public void run() {
-							p.setAllowFlight(true);
-							p.setFlying(true);
-							p.teleport(new Location(p.getWorld(), p.getLocation().getBlockX(), spectatorlobby.getBlockY(), p.getLocation().getBlockZ(), b, c));
+							try{
+								p.setAllowFlight(true);
+								p.setFlying(true);
+								p.teleport(new Location(p.getWorld(), p.getLocation().getBlockX(), spectatorlobby.getBlockY(), p.getLocation().getBlockZ(), b, c));
+							}catch(Exception e){
+								e.printStackTrace();
+							}
 						}
 					}, 5);
 					p.sendMessage("§3You fell! Type §6/cm leave §3to leave.");
@@ -329,10 +341,14 @@ public class Main extends JavaPlugin implements Listener {
 				final String arena = arenap.get(event.getPlayer());
 				Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 					public void run() {
-						Location l = getSpawn(arena);
-						p__.teleport(new Location(l.getWorld(), l.getBlockX(), l.getBlockY() + 30, l.getBlockZ()));
-						p__.setAllowFlight(true);
-						p__.setFlying(true);
+						try{
+							Location l = getSpawn(arena);
+							p__.teleport(new Location(l.getWorld(), l.getBlockX(), l.getBlockY() + 30, l.getBlockZ()));
+							p__.setAllowFlight(true);
+							p__.setFlying(true);
+						}catch(Exception e){
+							e.printStackTrace();
+						}
 					}
 				}, 5);
 
@@ -405,7 +421,6 @@ public class Main extends JavaPlugin implements Listener {
     	if(bs instanceof Sign){
     		s_ = (Sign)bs;
     	}else{
-    		getLogger().info("Could not find sign: " + bs.getBlock().toString());
     	}
 		return s_;
 	}
@@ -464,59 +479,79 @@ public class Main extends JavaPlugin implements Listener {
 	
 	public HashMap<Player, Boolean> winner = new HashMap<Player, Boolean>();
 	
-	public void leaveArena(final Player p, boolean flag) {
-		Bukkit.getScheduler().runTaskLater(this, new Runnable() {
-			public void run() {
-				p.teleport(getMainLobby());
+	public void leaveArena(final Player p, boolean flag, boolean hmmthisbug) {
+		try{
+			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
+				public void run() {
+					if(p.isOnline()){
+						p.teleport(getMainLobby());
+						p.setFlying(false);
+					}
+				}
+			}, 5);
+			
+			try{
+				lost.remove(p);
+			}catch(Exception e){}
+			
+			if(p.isOnline()){
+				p.setAllowFlight(false);
 				p.setFlying(false);
 			}
-		}, 5);
-		
-		try{
-			lost.remove(p);
-		}catch(Exception e){}
-		
-		p.setAllowFlight(false);
-		p.setFlying(false);
+			
+			final String arena = arenap.get(p);
 
-		String arena = arenap.get(p);
-
-		if(flag){
-			if (arenap.containsKey(p)) {
-				arenap.remove(p);
-			}	
-		}
-		if (arenap_.containsKey(p.getName())) {
-			arenap_.remove(p.getName());
-		}
-		
-		p.getInventory().setContents(pinv.get(p));
-		
-		//TODO try out
-		if(winner.containsKey(p)){
-			if(economy){
-				EconomyResponse r = econ.depositPlayer(p.getName(), getConfig().getDouble("config.money_reward_per_game"));
-    			if(!r.transactionSuccess()) {
-    				getServer().getPlayer(p.getName()).sendMessage(String.format("An error occured: %s", r.errorMessage));
-                }
-			}else{
-				p.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), itemamount));
+			if(flag){
+				if (arenap.containsKey(p)) {
+					arenap.remove(p);
+				}
+				if(xpsecp.containsKey(p)){
+					xpsecp.remove(p);
+				}
+			}
+			if (arenap_.containsKey(p.getName())) {
+				arenap_.remove(p.getName());
+			}
+			
+			if(p.isOnline()){
+				p.getInventory().setContents(pinv.get(p));
 				p.updateInventory();
 			}
-		}
-		
-		int count = 0;
-		for (Player p_ : arenap.keySet()) {
-			if (arenap.get(p_).equalsIgnoreCase(arena)) {
-				count++;
+			
+			if(winner.containsKey(p)){
+				if(economy){
+					EconomyResponse r = econ.depositPlayer(p.getName(), getConfig().getDouble("config.money_reward_per_game"));
+	    			if(!r.transactionSuccess()) {
+	    				getServer().getPlayer(p.getName()).sendMessage(String.format("An error occured: %s", r.errorMessage));
+	                }
+				}else{
+					p.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), itemamount));
+					p.updateInventory();
+				}
 			}
-		}
-		
-		if(count < 1){
-			if(flag){
+			
+			int count = 0;
+			for (Player p_ : arenap.keySet()) {
+				if (arenap.get(p_).equalsIgnoreCase(arena)) {
+					count++;
+				}
+			}
+
+			
+			if(hmmthisbug && count > 0){
+				getLogger().info("Sorry, I could not fix the game. Stopping now.");
 				stop(h.get(arena), arena);
 			}
+			
+			if(count < 2){
+				if(flag){
+					stop(h.get(arena), arena);
+				}
+			}
+		}catch(Exception e){
+			e.printStackTrace();
 		}
+	
 	}
 
 	public void joinLobby(final Player p, final String arena) {
@@ -631,79 +666,88 @@ public class Main extends JavaPlugin implements Listener {
 		id__ = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
 			@Override
 			public void run(){
-				a_round.put(arena, a_round.get(arena) + 1);
-				int n = a_n.get(arena);
-				if(a_round.get(arena) > rounds_per_game){
-					a_round.put(arena, 0);
-					stop(h.get(arena), arena);
-				}
-				
-				final ArrayList<BukkitTask> tasks = new ArrayList<BukkitTask>();
-				
-				//currentw = r.nextInt(colors.size());
-				a_currentw.put(arena, r.nextInt(colors.size()));
-				int currentw = a_currentw.get(arena);
-				for (final Player p : arenap.keySet()) {
-					if (arenap.get(p).equalsIgnoreCase(arena)) {
-						arenap_.put(p.getName(), arena);
-						// set inventory and exp bar
-						p.getInventory().clear();
-						p.updateInventory();
-						Wool w = new Wool();
-						w.setColor(colors.get(currentw));
-
-						p.setExp(0.97F);
-						if(!xpsecp.containsKey(p)){
-							xpsecp.put(p, 1);
-						}
-						tasks.add(Bukkit.getServer().getScheduler().runTaskTimer(m, new Runnable(){
-							public void run(){
-								int xpsec = xpsecp.get(p);
-								p.setExp(1 - (0.16F * xpsec));
-								xpsecp.put(p, xpsec + 1);
-							}
-						}, (40L -n) / 6, (40L -n) / 6));
-						
-						DyeColor dc = colors.get(currentw);
-						ItemStack wool = new ItemStack(Material.WOOL, 1, dc.getData());
-						ItemMeta m = wool.getItemMeta();
-						m.setDisplayName(dyeToChat(dc) + dc.name());
-						wool.setItemMeta(m);
-						for (int i = 0; i < 9; i++) {
-							p.getInventory().setItem(i, wool);
-						}
-						// p.getInventory().all(wool);
-						p.updateInventory();
+				try{
+					a_round.put(arena, a_round.get(arena) + 1);
+					int n = a_n.get(arena);
+					if(a_round.get(arena) > rounds_per_game){
+						a_round.put(arena, 0);
+						stop(h.get(arena), arena);
 					}
-				}
-				// remove all wools except current one
-				Bukkit.getServer().getScheduler().runTaskLater(m, new Runnable() {
+					
+					final ArrayList<BukkitTask> tasks = new ArrayList<BukkitTask>();
+					
+					//currentw = r.nextInt(colors.size());
+					a_currentw.put(arena, r.nextInt(colors.size()));
+					int currentw = a_currentw.get(arena);
+					for (final Player p : arenap.keySet()) {
+						if(p.isOnline()){
+							if (arenap.get(p).equalsIgnoreCase(arena)) {
+								arenap_.put(p.getName(), arena);
+								// set inventory and exp bar
+								p.getInventory().clear();
+								p.updateInventory();
+								Wool w = new Wool();
+								w.setColor(colors.get(currentw));
+
+								p.setExp(0.97F);
+								if(!xpsecp.containsKey(p)){
+									xpsecp.put(p, 1);
+								}
+								tasks.add(Bukkit.getServer().getScheduler().runTaskTimer(m, new Runnable(){
+									public void run(){
+										int xpsec = xpsecp.get(p);
+										p.setExp(1 - (0.16F * xpsec));
+										xpsecp.put(p, xpsec + 1);
+									}
+								}, (40L -n) / 6, (40L -n) / 6));
+								
+								DyeColor dc = colors.get(currentw);
+								ItemStack wool = new ItemStack(Material.WOOL, 1, dc.getData());
+								ItemMeta m = wool.getItemMeta();
+								m.setDisplayName(dyeToChat(dc) + dc.name());
+								wool.setItemMeta(m);
+								for (int i = 0; i < 9; i++) {
+									p.getInventory().setItem(i, wool);
+								}
+								// p.getInventory().all(wool);
+								p.updateInventory();
+							}	
+						}
+					}
+					// remove all wools except current one
+					Bukkit.getServer().getScheduler().runTaskLater(m, new Runnable() {
+						// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
+						// new Runnable(){
+						public void run() {
+							removeAllExceptOne(getSpawn(arena), arena);
+							for(BukkitTask t : tasks){
+								t.cancel();
+							}
+							for(Player p : xpsecp.keySet()){
+								if(arenap.containsKey(p)){
+									if(arenap.get(p).equalsIgnoreCase(arena)){
+										xpsecp.put(p, 1);
+									}	
+								}
+							}
+						}
+					}, 40L - n);
+
+					// BukkitTask id =
 					// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
-					// new Runnable(){
-					public void run() {
-						removeAllExceptOne(getSpawn(arena), arena);
-						for(BukkitTask t : tasks){
-							t.cancel();
+					// new Runnable() {
+					BukkitTask id = Bukkit.getServer().getScheduler().runTaskLater(m, new Runnable() {
+						@Override
+						public void run() {
+							reset(getSpawn(arena));
 						}
-						for(Player p : xpsecp.keySet()){
-							if(arenap.get(p).equalsIgnoreCase(arena)){
-								xpsecp.put(p, 1);
-							}
-						}
-					}
-				}, 40L - n);
-
-				// BukkitTask id =
-				// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
-				// new Runnable() {
-				BukkitTask id = Bukkit.getServer().getScheduler().runTaskLater(m, new Runnable() {
-					@Override
-					public void run() {
-						reset(getSpawn(arena));
-					}
-				}, 120);
-				// update count
-				a_n.put(arena, a_n.get(arena) + 1);
+					}, 120);
+					// update count
+					a_n.put(arena, a_n.get(arena) + 1);
+				}catch(Exception e){
+					e.printStackTrace();
+				}
+				
 			}
 		}, 20, 140); // 7 seconds
 
@@ -823,7 +867,7 @@ public class Main extends JavaPlugin implements Listener {
 		determineWinners(arena);
 		for(Player p : arenap.keySet()){
 			if(arenap.get(p).equalsIgnoreCase(arena)){
-				leaveArena(p, false);
+				leaveArena(p, false, false);
 				torem.add(p);
 			}
 		}
@@ -865,6 +909,17 @@ public class Main extends JavaPlugin implements Listener {
 		a_currentw.put(arena, 0);
 		
 		reset(getSpawn(arena));
+		
+		// clean out offline players
+		clean();
+	}
+	
+	public void clean(){
+		for(Player p : arenap.keySet()){
+			if(!p.isOnline()){
+				leaveArena(p, false, false);
+			}
+		}
 	}
 	
 	public void determineWinners(String arena){
