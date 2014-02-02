@@ -56,6 +56,7 @@ public class Main extends JavaPlugin implements Listener {
 	 * cm setup arena
 	 * 
 	 */
+	
 	public static Economy econ = null;
 
 	public static HashMap<String, Boolean> ingame = new HashMap<String, Boolean>(); // arena -> wether arena is ingame or not
@@ -218,7 +219,6 @@ public class Main extends JavaPlugin implements Listener {
 					}
 				} else if (action.equalsIgnoreCase("endall")) {
 					if(sender.hasPermission("colormatch.end")){
-						// TODO END COMMAND
 						for(String arena : tasks.keySet()){
 							try{
 								tasks.get(arena).cancel();
