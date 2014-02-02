@@ -51,17 +51,21 @@ public class Main extends JavaPlugin implements Listener {
 	 * 
 	 * for each new arena:
 	 * 
+	 * cm createarena arena
 	 * cm setlobby arena
 	 * cm setup arena
 	 * 
 	 */
 	public static Economy econ = null;
-	
+
+	public static HashMap<String, Boolean> ingame = new HashMap<String, Boolean>(); // arena -> wether arena is ingame or not
+	public static HashMap<String, BukkitTask> tasks = new HashMap<String, BukkitTask>(); // arena -> task
+
 	public static HashMap<Player, String> arenap = new HashMap<Player, String>(); // player -> arena
 	public static HashMap<String, String> arenap_ = new HashMap<String, String>(); // player -> arena
-	public static HashMap<Player, ItemStack[]> pinv = new HashMap<Player, ItemStack[]>();
-	public static HashMap<Player, String> lost = new HashMap<Player, String>();
-	public static HashMap<Player, Integer> xpsecp = new HashMap<Player, Integer>();
+	public static HashMap<Player, ItemStack[]> pinv = new HashMap<Player, ItemStack[]>(); // player -> inventory
+	public static HashMap<Player, String> lost = new HashMap<Player, String>(); // player -> wether lost or not
+	public static HashMap<Player, Integer> xpsecp = new HashMap<Player, Integer>(); 
 	public static HashMap<String, Integer> a_round = new HashMap<String, Integer>();
 	public static HashMap<String, Integer> a_n = new HashMap<String, Integer>();
 	public static HashMap<String, Integer> a_currentw = new HashMap<String, Integer>();
@@ -212,6 +216,22 @@ public class Main extends JavaPlugin implements Listener {
 					} else {
 						p.sendMessage("§cYou don't seem to be in an arena right now.");
 					}
+				} else if (action.equalsIgnoreCase("endall")) {
+					if(sender.hasPermission("colormatch.end")){
+						// TODO END COMMAND
+						for(String arena : tasks.keySet()){
+							try{
+								tasks.get(arena).cancel();
+							}catch(Exception e){
+								
+							}
+						}
+						ingame.clear();
+					}
+				} else if (action.equalsIgnoreCase("reload")) {
+					if(sender.hasPermission("colormatch.reload")){
+						this.reloadConfig();
+					}
 				} else if(action.equalsIgnoreCase("join")){
 					if(args.length > 1){
 						if(isValidArena(args[1])){
@@ -238,21 +258,26 @@ public class Main extends JavaPlugin implements Listener {
 					if(args.length > 1){
 						if(sender.hasPermission("colormatch.start")){
 							final String arena = args[1];
-							for (Player p_ : arenap.keySet()) {
-								if (arenap.get(p_).equalsIgnoreCase(arena)) {
-									final Player p__ = p_;
-									Bukkit.getScheduler().runTaskLater(this, new Runnable() {
-										public void run() {
-											p__.teleport(getSpawnForPlayer(arena));
-										}
-									}, 5);
-								}
+							if(!ingame.containsKey(arena)){
+								ingame.put(arena, false);
 							}
-							Bukkit.getScheduler().runTaskLater(this, new Runnable() {
-								public void run() {
-									start(arena);
+							if(!ingame.get(arena)){
+								for (Player p_ : arenap.keySet()) {
+									if (arenap.get(p_).equalsIgnoreCase(arena)) {
+										final Player p__ = p_;
+										Bukkit.getScheduler().runTaskLater(this, new Runnable() {
+											public void run() {
+												p__.teleport(getSpawnForPlayer(arena));
+											}
+										}, 5);
+									}
 								}
-							}, 10);	
+								Bukkit.getScheduler().runTaskLater(this, new Runnable() {
+									public void run() {
+										start(arena);
+									}
+								}, 10);	
+							}
 						}
 					}
 				} else if(action.equalsIgnoreCase("reload")){
@@ -586,7 +611,12 @@ public class Main extends JavaPlugin implements Listener {
 			}
 			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 				public void run() {
-					start(arena);
+					if(!ingame.containsKey(arena)){
+						ingame.put(arena, false);
+					}
+					if(!ingame.get(arena)){
+						start(arena);
+					}
 				}
 			}, 10);
 		}
@@ -648,6 +678,8 @@ public class Main extends JavaPlugin implements Listener {
 	final public HashMap<String, BukkitTask> h = new HashMap<String, BukkitTask>();
 	
 	public BukkitTask start(final String arena) {
+		ingame.put(arena, true);
+		
 		//setup arena
 		a_round.put(arena, 0);
 		a_n.put(arena, 0);
@@ -752,6 +784,7 @@ public class Main extends JavaPlugin implements Listener {
 		}, 20, 140); // 7 seconds
 
 		h.put(arena, id__);
+		tasks.put(arena, id__);
 		return id__;
 	}
 
@@ -856,62 +889,60 @@ public class Main extends JavaPlugin implements Listener {
 	// [END] COPIED FROM MINIGAMESPARTY
 	
 	
-	public void stop(BukkitTask t, String arena){
+	public void stop(BukkitTask t, final String arena){
+		ingame.put(arena, false);
 		try{
 			t.cancel();
 		}catch(Exception e){
 			
 		}
 		
-		ArrayList<Player> torem = new ArrayList<Player>();
-		determineWinners(arena);
-		for(Player p : arenap.keySet()){
-			if(arenap.get(p).equalsIgnoreCase(arena)){
-				leaveArena(p, false, false);
-				torem.add(p);
-			}
-		}
 		
-		for(Player p : torem){
-			arenap.remove(p);
-		}
-		torem.clear();
-		
-		
-		// bugfix
-		/*for(Player p : lost.keySet()){
-			if(lost.get(p).equalsIgnoreCase(arena)){
-				try{
-					leaveArena(p, false);
-				}catch(Exception e){
-					
+		//TODO runs all that stuff later, maybe that'll fix the "players are stuck in arena" bug
+		Bukkit.getScheduler().runTaskLater(this, new Runnable(){
+			
+			public void run(){
+				ArrayList<Player> torem = new ArrayList<Player>();
+				determineWinners(arena);
+				for(Player p : arenap.keySet()){
+					if(arenap.get(p).equalsIgnoreCase(arena)){
+						leaveArena(p, false, false);
+						torem.add(p);
+					}
 				}
+				
+				for(Player p : torem){
+					arenap.remove(p);
+				}
+				torem.clear();
+				
+				winner.clear();
+				
+				Sign s = getSignFromArena(arena);
+				if(s != null){
+					s.setLine(1, "§2[Join]");
+					s.setLine(3, "0/" + Integer.toString(minplayers));
+					s.update();
+				}
+				
+				h.remove(arena);
+				
+				// reset arena
+				for(Player p : xpsecp.keySet()){
+					xpsecp.put(p, 1);
+				}
+				a_round.put(arena, 0);
+				a_n.put(arena, 0);
+				a_currentw.put(arena, 0);
+				
+				reset(getSpawn(arena));
+				
+				// clean out offline players
+				clean();
 			}
-		}*/
+			
+		}, 20); // 1 second
 		
-		winner.clear();
-		
-		Sign s = this.getSignFromArena(arena);
-		if(s != null){
-			s.setLine(1, "§2[Join]");
-			s.setLine(3, "0/" + Integer.toString(minplayers));
-			s.update();
-		}
-		
-		h.remove(arena);
-		
-		// reset arena
-		for(Player p : xpsecp.keySet()){
-			xpsecp.put(p, 1);
-		}
-		a_round.put(arena, 0);
-		a_n.put(arena, 0);
-		a_currentw.put(arena, 0);
-		
-		reset(getSpawn(arena));
-		
-		// clean out offline players
-		clean();
 	}
 	
 	public void clean(){
