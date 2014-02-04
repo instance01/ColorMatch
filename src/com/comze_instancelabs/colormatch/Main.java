@@ -60,13 +60,7 @@ public class Main extends JavaPlugin implements Listener {
 	 * cm setup arena
 	 * 
 	 */
-	
-	/*
-    add scoreboard
-    add more advanced wool generation
-    add 30 seconds timer before starting a game
-    add 1.6.2/1.6.4 compatible version 
-	*/
+
 	
 	public static Economy econ = null;
 
@@ -93,6 +87,8 @@ public class Main extends JavaPlugin implements Listener {
 	boolean command_reward = false;
 	String cmd = "";
 	
+	int start_countdown = 5;
+	
 	public String saved_arena = "";
 	public String saved_lobby = "";
 	public String saved_setup = "";
@@ -105,6 +101,8 @@ public class Main extends JavaPlugin implements Listener {
 	public String you_fell = "";
 	public String arena_invalid_component = "";
 	public String you_won = "";
+	public String starting_in = "";
+	public String starting_in2 = "";
 	
 	@Override
 	public void onEnable(){
@@ -113,6 +111,7 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().options().header("I recommend you to set auto_updating to true for possible future bugfixes. If use_economy is set to false, the winner will get the item reward.");
 		getConfig().addDefault("config.auto_updating", true);
 		getConfig().addDefault("config.rounds_per_game", 10);
+		getConfig().addDefault("config.start_countdown", 5);
 		getConfig().addDefault("config.min_players", 4);
 		getConfig().addDefault("config.use_economy_reward", true);
 		getConfig().addDefault("config.money_reward_per_game", 30);
@@ -131,7 +130,9 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("strings.arena_invalid_sign", "&cThe arena appears to be invalid, because a join sign is missing.");
 		getConfig().addDefault("strings.arena_invalid_component", "&2The arena appears to be invalid (missing components or misstyped arena)!");
 		getConfig().addDefault("strings.you_fell", "&3You fell! Type &6/cm leave &3to leave.");
-		getConfig().addDefault("strings.you_won", "&2You won this round, awesome man! Here, enjoy your reward.");
+		getConfig().addDefault("strings.you_won", "&aYou won this round, awesome man! Here, enjoy your reward.");
+		getConfig().addDefault("strings.starting_in", "&aStarting in &6");
+		getConfig().addDefault("strings.starting_in2", "&a seconds.");
 
 		
 		getConfig().options().copyDefaults(true);
@@ -178,6 +179,7 @@ public class Main extends JavaPlugin implements Listener {
 		economy = getConfig().getBoolean("config.use_economy_reward");
 		command_reward = getConfig().getBoolean("config.use_command_reward");
 		cmd = getConfig().getString("config.command_reward");
+		start_countdown = getConfig().getInt("config.start_countdown");
 		
 		saved_arena = getConfig().getString("strings.saved.arena").replaceAll("&", "§");
 		saved_lobby = getConfig().getString("strings.saved.lobby").replaceAll("&", "§");
@@ -190,6 +192,8 @@ public class Main extends JavaPlugin implements Listener {
 		you_fell = getConfig().getString("strings.you_fell").replaceAll("&", "§");
 		arena_invalid_component = getConfig().getString("strings.arena_invalid_component").replace("&", "§");
 		you_won = getConfig().getString("strings.you_won").replaceAll("&", "§");
+		starting_in = getConfig().getString("strings.starting_in").replaceAll("&", "§");
+		starting_in2 = getConfig().getString("strings.starting_in2").replaceAll("&", "§");
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -740,6 +744,8 @@ public class Main extends JavaPlugin implements Listener {
 
 	
 	final public HashMap<String, BukkitTask> h = new HashMap<String, BukkitTask>();
+	final public HashMap<String, Integer> countdown_count = new HashMap<String, Integer>();
+	final public HashMap<String, Integer> countdown_id = new HashMap<String, Integer>();
 	
 	public BukkitTask start(final String arena) {
 		ingame.put(arena, true);
@@ -757,6 +763,29 @@ public class Main extends JavaPlugin implements Listener {
 			s.setLine(1, "§4[Ingame]");
 			s.update();
 		}
+		
+		// start countdown timer
+		
+		int t = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
+			public void run(){
+				for(Player p : arenap.keySet()){
+					if(arenap.get(p).equalsIgnoreCase(arena)){
+						if(!countdown_count.containsKey(arena)){
+							countdown_count.put(arena, start_countdown);
+						}
+						int count = countdown_count.get(arena);
+						p.sendMessage(starting_in + count + starting_in2);
+						count--;
+						countdown_count.put(arena, count);
+						if(count < 0){
+							countdown_count.put(arena, start_countdown);
+							Bukkit.getServer().getScheduler().cancelTask(countdown_id.get(arena));
+						}
+					}
+				}
+			}
+		}, 0, 20).getTaskId();
+		countdown_id.put(arena, t);
 		
 		BukkitTask id__ = null;
 		id__ = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
@@ -845,7 +874,7 @@ public class Main extends JavaPlugin implements Listener {
 				}
 				
 			}
-		}, 20, 140); // 7 seconds
+		}, 20 + 20 * start_countdown, 140); // 7 seconds
 
 		h.put(arena, id__);
 		tasks.put(arena, id__);
