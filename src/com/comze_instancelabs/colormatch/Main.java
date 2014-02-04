@@ -80,6 +80,8 @@ public class Main extends JavaPlugin implements Listener {
 	int reward = 30;
 	int itemid = 264;
 	int itemamount = 1;
+	boolean command_reward = false;
+	String cmd = "";
 	
 	public String saved_arena = "";
 	public String saved_lobby = "";
@@ -98,14 +100,16 @@ public class Main extends JavaPlugin implements Listener {
 	public void onEnable(){
 		getServer().getPluginManager().registerEvents(this, this);
 		
-		getConfig().options().header("I recommend you to set auto_updating to true for possible future bugfixes.");
+		getConfig().options().header("I recommend you to set auto_updating to true for possible future bugfixes. If use_economy is set to false, the winner will get the item reward.");
 		getConfig().addDefault("config.auto_updating", true);
 		getConfig().addDefault("config.rounds_per_game", 10);
 		getConfig().addDefault("config.min_players", 4);
-		getConfig().addDefault("config.use_economy", true);
+		getConfig().addDefault("config.use_economy_reward", true);
 		getConfig().addDefault("config.money_reward_per_game", 30);
 		getConfig().addDefault("config.itemid", 264); // diamond
 		getConfig().addDefault("config.itemamount", 1);
+		getConfig().addDefault("config.use_command_reward", false);
+		getConfig().addDefault("config.command_reward", "pex user [user] group set ColorPro");
 		
 		getConfig().addDefault("strings.saved.arena", "&aSuccessfully saved arena.");
 		getConfig().addDefault("strings.saved.lobby", "&aSuccessfully saved lobby.");
@@ -161,7 +165,9 @@ public class Main extends JavaPlugin implements Listener {
 		reward = getConfig().getInt("config.money_reward");
 		itemid = getConfig().getInt("config.itemid");
 		itemamount = getConfig().getInt("config.itemamount");
-		economy = getConfig().getBoolean("config.use_economy");
+		economy = getConfig().getBoolean("config.use_economy_reward");
+		command_reward = getConfig().getBoolean("config.use_command_reward");
+		cmd = getConfig().getString("config.command_reward");
 		
 		saved_arena = getConfig().getString("strings.saved.arena").replaceAll("&", "§");
 		saved_lobby = getConfig().getString("strings.saved.lobby").replaceAll("&", "§");
@@ -593,6 +599,11 @@ public class Main extends JavaPlugin implements Listener {
 				}else{
 					p.getInventory().addItem(new ItemStack(Material.getMaterial(itemid), itemamount));
 					p.updateInventory();
+				}
+				
+				// command reward
+				if(command_reward){
+					Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd.replaceAll("[user]", p.getName()));
 				}
 			}
 			
