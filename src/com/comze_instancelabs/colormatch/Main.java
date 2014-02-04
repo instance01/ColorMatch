@@ -37,6 +37,10 @@ import org.bukkit.material.Wool;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.ScoreboardManager;
 
 import com.google.common.collect.Maps;
 
@@ -57,6 +61,12 @@ public class Main extends JavaPlugin implements Listener {
 	 * 
 	 */
 	
+	/*
+    add scoreboard
+    add more advanced wool generation
+    add 30 seconds timer before starting a game
+    add 1.6.2/1.6.4 compatible version 
+	*/
 	
 	public static Economy econ = null;
 
@@ -572,7 +582,7 @@ public class Main extends JavaPlugin implements Listener {
 			}
 			
 			final String arena = arenap.get(p);
-
+			
 			if(flag){
 				if (arenap.containsKey(p)) {
 					arenap.remove(p);
@@ -584,6 +594,8 @@ public class Main extends JavaPlugin implements Listener {
 			if (arenap_.containsKey(p.getName())) {
 				arenap_.remove(p.getName());
 			}
+			
+			updateScoreboard(arena);
 			
 			if(p.isOnline()){
 				p.getInventory().setContents(pinv.get(p));
@@ -949,11 +961,12 @@ public class Main extends JavaPlugin implements Listener {
 			
 		}
 		
-		
 		//TODO runs all that stuff later, maybe that'll fix the "players are stuck in arena" bug
 		Bukkit.getScheduler().runTaskLater(this, new Runnable(){
 			
 			public void run(){
+				removeScoreboard(arena);
+				
 				ArrayList<Player> torem = new ArrayList<Player>();
 				determineWinners(arena);
 				for(Player p : arenap.keySet()){
@@ -1050,4 +1063,57 @@ public class Main extends JavaPlugin implements Listener {
                     return dyeChatMap.get(dclr);
             return ChatColor.MAGIC;
     }
+    
+    
+    
+    public void updateScoreboard(String arena){
+		try{
+			ScoreboardManager manager = Bukkit.getScoreboardManager();
+		    
+			int count = 0;
+			for (Player p_ : arenap.keySet()) {
+				if (arenap.get(p_).equalsIgnoreCase(arena)) {
+					count++;
+				}
+			}
+			
+		    for(Player p : Bukkit.getOnlinePlayers()){
+		    	if(arenap.containsKey(p)){
+		    		if(arenap.get(p).equalsIgnoreCase(arena)){
+		    			Scoreboard board = manager.getNewScoreboard();
+				    	
+				    	Objective objective = board.registerNewObjective("test", "dummy");
+				        objective.setDisplaySlot(DisplaySlot.SIDEBAR);
+
+				        objective.setDisplayName("§l§2ColorMatch!");
+				        
+
+				        objective.getScore(Bukkit.getOfflinePlayer(" ")).setScore(2);
+				        objective.getScore(Bukkit.getOfflinePlayer("§aPlayers Left")).setScore(1);
+				        objective.getScore(Bukkit.getOfflinePlayer(Integer.toString(count) + "/" + minplayers)).setScore(0);
+				        
+				        p.setScoreboard(board);
+		    		}
+		    	}
+		    }
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+    
+    public void removeScoreboard(String arena){
+		try{
+			ScoreboardManager manager = Bukkit.getScoreboardManager();
+		    
+			for(Player p : Bukkit.getOnlinePlayers()){
+		    	if(arenap.containsKey(p)){
+		    		if(arenap.get(p).equalsIgnoreCase(arena)){
+				        p.setScoreboard(manager.getNewScoreboard());
+		    		}
+		    	}
+		    }
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
 }
