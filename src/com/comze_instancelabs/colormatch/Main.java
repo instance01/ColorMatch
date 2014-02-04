@@ -406,6 +406,7 @@ public class Main extends JavaPlugin implements Listener {
 					final Player p = event.getPlayer();
 					final float b = p.getLocation().getYaw();
 					final float c = p.getLocation().getPitch();
+					final String arena = arenap.get(event.getPlayer());
 					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable() {
 						@Override
 						public void run() {
@@ -413,6 +414,7 @@ public class Main extends JavaPlugin implements Listener {
 								p.setAllowFlight(true);
 								p.setFlying(true);
 								p.teleport(new Location(p.getWorld(), p.getLocation().getBlockX(), spectatorlobby.getBlockY(), p.getLocation().getBlockZ(), b, c));
+								updateScoreboard(arena);
 							}catch(Exception e){
 								e.printStackTrace();
 							}
@@ -689,6 +691,8 @@ public class Main extends JavaPlugin implements Listener {
 			}, 10);
 		}
 		
+		updateScoreboard(arena);
+		
 		try{
 			Sign s = this.getSignFromArena(arena);
 			if(s != null){
@@ -768,20 +772,20 @@ public class Main extends JavaPlugin implements Listener {
 		
 		int t = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
 			public void run(){
+				if(!countdown_count.containsKey(arena)){
+					countdown_count.put(arena, start_countdown);
+				}
+				int count = countdown_count.get(arena);
 				for(Player p : arenap.keySet()){
 					if(arenap.get(p).equalsIgnoreCase(arena)){
-						if(!countdown_count.containsKey(arena)){
-							countdown_count.put(arena, start_countdown);
-						}
-						int count = countdown_count.get(arena);
 						p.sendMessage(starting_in + count + starting_in2);
-						count--;
-						countdown_count.put(arena, count);
-						if(count < 0){
-							countdown_count.put(arena, start_countdown);
-							Bukkit.getServer().getScheduler().cancelTask(countdown_id.get(arena));
-						}
 					}
+				}
+				count--;
+				countdown_count.put(arena, count);
+				if(count < 0){
+					countdown_count.put(arena, start_countdown);
+					Bukkit.getServer().getScheduler().cancelTask(countdown_id.get(arena));
 				}
 			}
 		}, 0, 20).getTaskId();
@@ -990,11 +994,14 @@ public class Main extends JavaPlugin implements Listener {
 			
 		}
 		
-		//TODO runs all that stuff later, maybe that'll fix the "players are stuck in arena" bug
+		// runs all that stuff later, that fixes the "players are stuck in arena" bug!
 		Bukkit.getScheduler().runTaskLater(this, new Runnable(){
 			
 			public void run(){
-				removeScoreboard(arena);
+				countdown_count.put(arena, start_countdown);
+				try{
+					Bukkit.getServer().getScheduler().cancelTask(countdown_id.get(arena));
+				}catch(Exception e){}
 				
 				ArrayList<Player> torem = new ArrayList<Player>();
 				determineWinners(arena);
@@ -1004,6 +1011,8 @@ public class Main extends JavaPlugin implements Listener {
 						torem.add(p);
 					}
 				}
+				
+				removeScoreboard(arena);
 				
 				for(Player p : torem){
 					arenap.remove(p);
@@ -1106,6 +1115,15 @@ public class Main extends JavaPlugin implements Listener {
 				}
 			}
 			
+			int lostcount = 0;
+			for(Player p : arenap.keySet()){
+				if(arenap.get(p).equalsIgnoreCase(arena)){
+					if(lost.containsKey(p)){
+						lostcount++;
+					}
+				}
+			}
+			
 		    for(Player p : Bukkit.getOnlinePlayers()){
 		    	if(arenap.containsKey(p)){
 		    		if(arenap.get(p).equalsIgnoreCase(arena)){
@@ -1119,7 +1137,7 @@ public class Main extends JavaPlugin implements Listener {
 
 				        objective.getScore(Bukkit.getOfflinePlayer(" ")).setScore(2);
 				        objective.getScore(Bukkit.getOfflinePlayer("§aPlayers Left")).setScore(1);
-				        objective.getScore(Bukkit.getOfflinePlayer(Integer.toString(count) + "/" + minplayers)).setScore(0);
+				        objective.getScore(Bukkit.getOfflinePlayer(Integer.toString(count - lostcount) + "/" + Integer.toString(count))).setScore(0);
 				        
 				        p.setScoreboard(board);
 		    		}
