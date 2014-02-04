@@ -57,6 +57,7 @@ public class Main extends JavaPlugin implements Listener {
 	 * 
 	 */
 	
+	
 	public static Economy econ = null;
 
 	public static HashMap<String, Boolean> ingame = new HashMap<String, Boolean>(); // arena -> wether arena is ingame or not
@@ -80,6 +81,19 @@ public class Main extends JavaPlugin implements Listener {
 	int itemid = 264;
 	int itemamount = 1;
 	
+	public String saved_arena = "";
+	public String saved_lobby = "";
+	public String saved_setup = "";
+	public String saved_mainlobby = "";
+	public String not_in_arena = "";
+	public String reloaded = "";
+	public String arena_ingame = "";
+	public String arena_invalid = "";
+	public String arena_invalid_sign = "";
+	public String you_fell = "";
+	public String arena_invalid_component = "";
+	public String you_won = "";
+	
 	@Override
 	public void onEnable(){
 		getServer().getPluginManager().registerEvents(this, this);
@@ -92,6 +106,20 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("config.money_reward_per_game", 30);
 		getConfig().addDefault("config.itemid", 264); // diamond
 		getConfig().addDefault("config.itemamount", 1);
+		
+		getConfig().addDefault("strings.saved.arena", "&aSuccessfully saved arena.");
+		getConfig().addDefault("strings.saved.lobby", "&aSuccessfully saved lobby.");
+		getConfig().addDefault("strings.saved.setup", "&6Successfully saved spawn. Now setting up, might &2lag&6 a little bit.");
+		getConfig().addDefault("strings.not_in_arena", "&cYou don't seem to be in an arena right now.");
+		getConfig().addDefault("strings.config_reloaded", "&6Successfully reloaded config.");
+		getConfig().addDefault("strings.arena_is_ingame", "&cThe arena appears to be ingame.");
+		getConfig().addDefault("strings.arena_invalid", "&cThe arena appears to be invalid.");
+		getConfig().addDefault("strings.arena_invalid_sign", "&cThe arena appears to be invalid, because a join sign is missing.");
+		getConfig().addDefault("strings.arena_invalid_component", "&2The arena appears to be invalid (missing components or misstyped arena)!");
+		getConfig().addDefault("strings.you_fell", "&3You fell! Type &6/cm leave &3to leave.");
+		getConfig().addDefault("strings.you_won", "&2You won this round, awesome man! Here, enjoy your reward.");
+
+		
 		getConfig().options().copyDefaults(true);
 		this.saveConfig();
 		
@@ -134,6 +162,18 @@ public class Main extends JavaPlugin implements Listener {
 		itemid = getConfig().getInt("config.itemid");
 		itemamount = getConfig().getInt("config.itemamount");
 		economy = getConfig().getBoolean("config.use_economy");
+		
+		saved_arena = getConfig().getString("strings.saved.arena").replaceAll("&", "§");
+		saved_lobby = getConfig().getString("strings.saved.lobby").replaceAll("&", "§");
+		saved_setup = getConfig().getString("strings.saved.setup").replaceAll("&", "§");
+		not_in_arena = getConfig().getString("strings.not_in_arena").replaceAll("&", "§");
+		reloaded = getConfig().getString("strings.config_reloaded").replaceAll("&", "§");
+		arena_ingame = getConfig().getString("strings.arena_is_ingame").replaceAll("&", "§");
+		arena_invalid = getConfig().getString("strings.arena_invalid").replaceAll("&", "§");
+		arena_invalid_sign = getConfig().getString("strings.arena_invalid_sign").replaceAll("&", "§");
+		you_fell = getConfig().getString("strings.you_fell").replaceAll("&", "§");
+		arena_invalid_component = getConfig().getString("strings.arena_invalid_component").replace("&", "§");
+		you_won = getConfig().getString("strings.you_won").replaceAll("&", "§");
 	}
 	
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -147,7 +187,7 @@ public class Main extends JavaPlugin implements Listener {
 							String arenaname = args[1];
 							getConfig().set(arenaname + ".name", arenaname);
 							this.saveConfig();
-							sender.sendMessage("§2Successfully saved arena.");	
+							sender.sendMessage(saved_arena);	
 						}
 					}
 				} /*
@@ -175,7 +215,7 @@ public class Main extends JavaPlugin implements Listener {
 							getConfig().set(arenaname + ".lobby.loc.z",
 									p.getLocation().getBlockZ());
 							this.saveConfig();
-							sender.sendMessage("§2Successfully saved lobby.");	
+							sender.sendMessage(saved_lobby);	
 						}
 					}
 				} else if (action.equalsIgnoreCase("setup")) {
@@ -192,7 +232,7 @@ public class Main extends JavaPlugin implements Listener {
 							getConfig().set(arenaname + ".spawn.loc.z",
 									p.getLocation().getBlockZ());
 							this.saveConfig();
-							sender.sendMessage("§6Successfully saved spawn. Now setting up, may §2lag§6 a little bit.");
+							sender.sendMessage(saved_setup);
 							setup(p.getLocation(), this, arenaname);	
 						}
 					}
@@ -208,14 +248,14 @@ public class Main extends JavaPlugin implements Listener {
 						getConfig().set("mainlobby.loc.z",
 								p.getLocation().getBlockZ());
 						this.saveConfig();
-						sender.sendMessage("§2Successfully saved main lobby.");	
+						sender.sendMessage(saved_mainlobby);	
 					}
 				} else if (action.equalsIgnoreCase("leave")) {
 					Player p = (Player) sender;
 					if (arenap.containsKey(p)) {
 						leaveArena(p, true, false);
 					} else {
-						p.sendMessage("§cYou don't seem to be in an arena right now.");
+						p.sendMessage(not_in_arena);
 					}
 				} else if (action.equalsIgnoreCase("endall")) {
 					if(sender.hasPermission("colormatch.end")){
@@ -231,6 +271,7 @@ public class Main extends JavaPlugin implements Listener {
 				} else if (action.equalsIgnoreCase("reload")) {
 					if(sender.hasPermission("colormatch.reload")){
 						this.reloadConfig();
+						sender.sendMessage(reloaded);
 					}
 				} else if(action.equalsIgnoreCase("join")){
 					if(args.length > 1){
@@ -245,13 +286,13 @@ public class Main extends JavaPlugin implements Listener {
 								if(s.getLine(1).equalsIgnoreCase("§2[join]")){
 									joinLobby((Player)sender, args[1]);
 								}else{
-									sender.sendMessage("§cThe arena appears to be ingame.");
+									sender.sendMessage(arena_ingame);
 								}
 							}else{
-								sender.sendMessage("§cThe arena appears to be invalid, because a join sign is missing.");
+								sender.sendMessage(arena_invalid_sign);
 							}
 						}else{
-							sender.sendMessage("§cThe arena appears to be invalid.");
+							sender.sendMessage(arena_invalid);
 						}
 					}
 				} else if(action.equalsIgnoreCase("start")){
@@ -357,7 +398,7 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}
 					}, 5);
-					p.sendMessage("§3You fell! Type §6/cm leave §3to leave.");
+					p.sendMessage(you_fell);
 				}
 			}
 			if(event.getPlayer().getLocation().getBlockY() < getSpawn(arenap_.get(event.getPlayer().getName())).getBlockY() - 2){
@@ -428,7 +469,7 @@ public class Main extends JavaPlugin implements Listener {
 						this.saveConfig();
 						p.sendMessage("§2Successfully created arena sign.");
 	        		}else{
-	        			p.sendMessage("§2The arena appears to be invalid (missing components or misstyped arena)!");
+	        			p.sendMessage(arena_invalid_component);
 	        			event.getBlock().breakNaturally();
 	        		}
 	        		event.setLine(1, "§2[Join]");
@@ -958,7 +999,7 @@ public class Main extends JavaPlugin implements Listener {
 			if(arenap.get(p).equalsIgnoreCase(arena)){
 				if(!lost.containsKey(p)){
 					// this player is a winner
-					p.sendMessage("§2You won this round, awesome man! Here, enjoy your reward.");
+					p.sendMessage(you_won);
 					winner.put(p, true);
 				}else{
 					lost.remove(p);
