@@ -291,6 +291,7 @@ public class Main extends JavaPlugin implements Listener {
 				} else if (action.equalsIgnoreCase("reload")) {
 					if(sender.hasPermission("colormatch.reload")){
 						this.reloadConfig();
+						getConfigVars();
 						sender.sendMessage(reloaded);
 					}
 				} else if(action.equalsIgnoreCase("join")){
