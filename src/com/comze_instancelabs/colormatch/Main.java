@@ -29,6 +29,7 @@ import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
@@ -369,10 +370,45 @@ public class Main extends JavaPlugin implements Listener {
 		return false;
 	}
 
+	public ArrayList<String> left_players = new ArrayList<String>();
+	
 	@EventHandler
     public void onPlayerLeave(PlayerQuitEvent event){
 		if(arenap_.containsKey(event.getPlayer().getName())){
+			String arena = arenap_.get(event.getPlayer().getName());
+			int count = 0;
+			for (Player p_ : arenap.keySet()) {
+				if (arenap.get(p_).equalsIgnoreCase(arena)) {
+					count++;
+				}
+			}
+			
+			try{
+				Sign s = this.getSignFromArena(arena);
+				if(s != null){
+					s.setLine(3, Integer.toString(count - 1) + "/" + Integer.toString(this.minplayers));
+					s.update();
+				}
+			}catch(Exception e){
+				getLogger().warning("You forgot to set a sign for arena " + arena + "! This might lead to errors.");
+			}
+			
 			leaveArena(event.getPlayer(), true, true);
+			left_players.add(event.getPlayer().getName());
+		}
+    }
+	
+	@EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event){
+		if(left_players.contains(event.getPlayer().getName())){
+			final Player p = event.getPlayer();
+			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
+				public void run() {
+					p.teleport(getMainLobby());
+					p.setFlying(false);
+				}
+			}, 5);
+			left_players.remove(event.getPlayer().getName());
 		}
     }
 	
