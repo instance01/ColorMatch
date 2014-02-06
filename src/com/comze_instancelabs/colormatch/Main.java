@@ -374,8 +374,9 @@ public class Main extends JavaPlugin implements Listener {
 	
 	@EventHandler
     public void onPlayerLeave(PlayerQuitEvent event){
-		if(arenap_.containsKey(event.getPlayer().getName())){
-			String arena = arenap_.get(event.getPlayer().getName());
+		if(arenap.containsKey(event.getPlayer())){
+			String arena = arenap.get(event.getPlayer());
+			getLogger().info(arena);
 			int count = 0;
 			for (Player p_ : arenap.keySet()) {
 				if (arenap.get(p_).equalsIgnoreCase(arena)) {
@@ -386,6 +387,7 @@ public class Main extends JavaPlugin implements Listener {
 			try{
 				Sign s = this.getSignFromArena(arena);
 				if(s != null){
+					s.setLine(1, "§2[Join]");
 					s.setLine(3, Integer.toString(count - 1) + "/" + Integer.toString(this.minplayers));
 					s.update();
 				}
