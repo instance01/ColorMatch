@@ -829,7 +829,7 @@ public class Main extends JavaPlugin implements Listener {
 										p.setExp(1 - (0.16F * xpsec));
 										xpsecp.put(p, xpsec + 1);
 									}
-								}, (40L -n) / 6, (40L -n) / 6));
+								}, (60L - n) / 6, (60L - n) / 6));
 								
 								DyeColor dc = colors.get(currentw);
 								ItemStack wool = new ItemStack(Material.WOOL, 1, dc.getData());
@@ -861,7 +861,7 @@ public class Main extends JavaPlugin implements Listener {
 								}
 							}
 						}
-					}, 40L - n);
+					}, 60L - n);
 
 					// BukkitTask id =
 					// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
@@ -871,15 +871,17 @@ public class Main extends JavaPlugin implements Listener {
 						public void run() {
 							reset(getSpawn(arena));
 						}
-					}, 120);
+					}, 110 - (n / 2));
 					// update count
-					a_n.put(arena, a_n.get(arena) + 1);
+					if(a_n.get(arena) < (60L - 10)){
+						a_n.put(arena, a_n.get(arena) + 4);
+					}
 				}catch(Exception e){
 					e.printStackTrace();
 				}
 				
 			}
-		}, 20 + 20 * start_countdown, 140); // 7 seconds
+		}, 20 + 20 * start_countdown, 120); // 7 seconds
 
 		h.put(arena, id__);
 		tasks.put(arena, id__);
