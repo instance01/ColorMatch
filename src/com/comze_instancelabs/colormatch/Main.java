@@ -881,7 +881,7 @@ public class Main extends JavaPlugin implements Listener {
 				}
 				
 			}
-		}, 20 + 20 * start_countdown, 120); // 7 seconds
+		}, 20 + 20 * start_countdown, 120); // 6 seconds
 
 		h.put(arena, id__);
 		tasks.put(arena, id__);
