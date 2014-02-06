@@ -825,6 +825,9 @@ public class Main extends JavaPlugin implements Listener {
 								}
 								tasks.add(Bukkit.getServer().getScheduler().runTaskTimer(m, new Runnable(){
 									public void run(){
+										if(!xpsecp.containsKey(p)){
+											xpsecp.put(p, 1);
+										}
 										int xpsec = xpsecp.get(p);
 										p.setExp(1 - (0.16F * xpsec));
 										xpsecp.put(p, xpsec + 1);
