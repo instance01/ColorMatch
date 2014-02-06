@@ -203,7 +203,7 @@ public class Main extends JavaPlugin implements Listener {
 				if (action.equalsIgnoreCase("createarena")) {
 					// create arena
 					if (args.length > 1) {
-						if(sender.hasPermission("colormatch.setup")){
+						if(sender.hasPermission("colormatch.setup") || sender.isOp()){
 							String arenaname = args[1];
 							getConfig().set(arenaname + ".name", arenaname);
 							this.saveConfig();
@@ -223,7 +223,7 @@ public class Main extends JavaPlugin implements Listener {
 				 * sender.sendMessage("§2Successfully saved spawn."); } }
 				 */else if (action.equalsIgnoreCase("setlobby")) {
 					if (args.length > 1) {
-						if(sender.hasPermission("colormatch.setup")){
+						if(sender.hasPermission("colormatch.setup") || sender.isOp()){
 							Player p = (Player) sender;
 							String arenaname = args[1];
 							getConfig().set(arenaname + ".lobby.world",
@@ -240,7 +240,7 @@ public class Main extends JavaPlugin implements Listener {
 					}
 				} else if (action.equalsIgnoreCase("setup")) {
 					if (args.length > 1) {
-						if(sender.hasPermission("colormatch.setup")){
+						if(sender.hasPermission("colormatch.setup") || sender.isOp()){
 							Player p = (Player) sender;
 							String arenaname = args[1];
 							getConfig().set(arenaname + ".spawn.world",
@@ -256,7 +256,7 @@ public class Main extends JavaPlugin implements Listener {
 							setup(p.getLocation(), this, arenaname);	
 						}
 					}
-				} else if (action.equalsIgnoreCase("setmainlobby")) {
+				} else if (action.equalsIgnoreCase("setmainlobby") || sender.isOp()) {
 					if(sender.hasPermission("colormatch.setup")){
 						Player p = (Player) sender;
 						getConfig().set("mainlobby.world",
@@ -278,7 +278,7 @@ public class Main extends JavaPlugin implements Listener {
 						p.sendMessage(not_in_arena);
 					}
 				} else if (action.equalsIgnoreCase("endall")) {
-					if(sender.hasPermission("colormatch.end")){
+					if(sender.hasPermission("colormatch.end") || sender.isOp()){
 						for(String arena : tasks.keySet()){
 							try{
 								tasks.get(arena).cancel();
@@ -287,12 +287,6 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}
 						ingame.clear();
-					}
-				} else if (action.equalsIgnoreCase("reload")) {
-					if(sender.hasPermission("colormatch.reload")){
-						this.reloadConfig();
-						getConfigVars();
-						sender.sendMessage(reloaded);
 					}
 				} else if(action.equalsIgnoreCase("join")){
 					if(args.length > 1){
@@ -318,7 +312,7 @@ public class Main extends JavaPlugin implements Listener {
 					}
 				} else if(action.equalsIgnoreCase("start")){
 					if(args.length > 1){
-						if(sender.hasPermission("colormatch.start")){
+						if(sender.hasPermission("colormatch.start") || sender.isOp()){
 							final String arena = args[1];
 							if(!ingame.containsKey(arena)){
 								ingame.put(arena, false);
@@ -343,12 +337,13 @@ public class Main extends JavaPlugin implements Listener {
 						}
 					}
 				} else if(action.equalsIgnoreCase("reload")){
-					if(sender.hasPermission("colormatch.reload")){
+					if(sender.hasPermission("colormatch.reload") || sender.isOp()){
 						this.reloadConfig();
-						getConfigVars();	
+						getConfigVars();
+						sender.sendMessage(reloaded);
 					}
 				} else if(action.equalsIgnoreCase("list")){
-					if(sender.hasPermission("colormatch.list")){
+					if(sender.hasPermission("colormatch.list") || sender.isOp()){
 						sender.sendMessage("§6-= Arenas =-");
 						for(String arena : getConfig().getKeys(false)){
 							if(!arena.equalsIgnoreCase("mainlobby")){
@@ -480,7 +475,7 @@ public class Main extends JavaPlugin implements Listener {
     public void onSignChange(SignChangeEvent event) {
         Player p = event.getPlayer();
         if(event.getLine(0).toLowerCase().equalsIgnoreCase("colormatch")){
-        	if(event.getPlayer().hasPermission("cm.sign")){
+        	if(event.getPlayer().hasPermission("cm.sign") || event.getPlayer().isOp()){
 	        	event.setLine(0, "§6§lColorMatch");
 	        	if(!event.getLine(2).equalsIgnoreCase("")){
 	        		String arena = event.getLine(2);
