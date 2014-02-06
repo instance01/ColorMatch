@@ -1,4 +1,4 @@
-package com.comze_instancelabs.colormatch;
+package com.comze_instancelabs.colormatch.backup;
 
 import org.bukkit.World;
 import org.bukkit.entity.Player;

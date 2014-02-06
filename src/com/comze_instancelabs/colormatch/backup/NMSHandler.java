@@ -1,4 +1,4 @@
-package com.comze_instancelabs.colormatch;
+package com.comze_instancelabs.colormatch.backup;
 
 import net.minecraft.server.v1_7_R1.Block;
 import net.minecraft.server.v1_7_R1.Chunk;
