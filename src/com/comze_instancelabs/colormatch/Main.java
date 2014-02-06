@@ -184,6 +184,7 @@ public class Main extends JavaPlugin implements Listener {
 		saved_arena = getConfig().getString("strings.saved.arena").replaceAll("&", "§");
 		saved_lobby = getConfig().getString("strings.saved.lobby").replaceAll("&", "§");
 		saved_setup = getConfig().getString("strings.saved.setup").replaceAll("&", "§");
+		saved_mainlobby = "§aSuccessfully saved main lobby";
 		not_in_arena = getConfig().getString("strings.not_in_arena").replaceAll("&", "§");
 		reloaded = getConfig().getString("strings.config_reloaded").replaceAll("&", "§");
 		arena_ingame = getConfig().getString("strings.arena_is_ingame").replaceAll("&", "§");
@@ -203,7 +204,7 @@ public class Main extends JavaPlugin implements Listener {
 				if (action.equalsIgnoreCase("createarena")) {
 					// create arena
 					if (args.length > 1) {
-						if(sender.hasPermission("colormatch.setup") || sender.isOp()){
+						if(sender.hasPermission("colormatch.setup")){
 							String arenaname = args[1];
 							getConfig().set(arenaname + ".name", arenaname);
 							this.saveConfig();
@@ -223,7 +224,7 @@ public class Main extends JavaPlugin implements Listener {
 				 * sender.sendMessage("§2Successfully saved spawn."); } }
 				 */else if (action.equalsIgnoreCase("setlobby")) {
 					if (args.length > 1) {
-						if(sender.hasPermission("colormatch.setup") || sender.isOp()){
+						if(sender.hasPermission("colormatch.setup")){
 							Player p = (Player) sender;
 							String arenaname = args[1];
 							getConfig().set(arenaname + ".lobby.world",
@@ -240,7 +241,7 @@ public class Main extends JavaPlugin implements Listener {
 					}
 				} else if (action.equalsIgnoreCase("setup")) {
 					if (args.length > 1) {
-						if(sender.hasPermission("colormatch.setup") || sender.isOp()){
+						if(sender.hasPermission("colormatch.setup")){
 							Player p = (Player) sender;
 							String arenaname = args[1];
 							getConfig().set(arenaname + ".spawn.world",
@@ -256,7 +257,7 @@ public class Main extends JavaPlugin implements Listener {
 							setup(p.getLocation(), this, arenaname);	
 						}
 					}
-				} else if (action.equalsIgnoreCase("setmainlobby") || sender.isOp()) {
+				} else if (action.equalsIgnoreCase("setmainlobby")) {
 					if(sender.hasPermission("colormatch.setup")){
 						Player p = (Player) sender;
 						getConfig().set("mainlobby.world",
@@ -278,7 +279,7 @@ public class Main extends JavaPlugin implements Listener {
 						p.sendMessage(not_in_arena);
 					}
 				} else if (action.equalsIgnoreCase("endall")) {
-					if(sender.hasPermission("colormatch.end") || sender.isOp()){
+					if(sender.hasPermission("colormatch.end")){
 						for(String arena : tasks.keySet()){
 							try{
 								tasks.get(arena).cancel();
@@ -312,7 +313,7 @@ public class Main extends JavaPlugin implements Listener {
 					}
 				} else if(action.equalsIgnoreCase("start")){
 					if(args.length > 1){
-						if(sender.hasPermission("colormatch.start") || sender.isOp()){
+						if(sender.hasPermission("colormatch.start")){
 							final String arena = args[1];
 							if(!ingame.containsKey(arena)){
 								ingame.put(arena, false);
@@ -337,13 +338,13 @@ public class Main extends JavaPlugin implements Listener {
 						}
 					}
 				} else if(action.equalsIgnoreCase("reload")){
-					if(sender.hasPermission("colormatch.reload") || sender.isOp()){
+					if(sender.hasPermission("colormatch.reload")){
 						this.reloadConfig();
 						getConfigVars();
 						sender.sendMessage(reloaded);
 					}
 				} else if(action.equalsIgnoreCase("list")){
-					if(sender.hasPermission("colormatch.list") || sender.isOp()){
+					if(sender.hasPermission("colormatch.list")){
 						sender.sendMessage("§6-= Arenas =-");
 						for(String arena : getConfig().getKeys(false)){
 							if(!arena.equalsIgnoreCase("mainlobby")){
@@ -801,8 +802,12 @@ public class Main extends JavaPlugin implements Listener {
 					
 					final ArrayList<BukkitTask> tasks = new ArrayList<BukkitTask>();
 					
-					//currentw = r.nextInt(colors.size());
-					a_currentw.put(arena, r.nextInt(colors.size()));
+					int temp = r.nextInt(colors.size());
+					if(a_currentw.get(arena) == temp){
+						a_currentw.put(arena, r.nextInt(colors.size()));
+					}else{
+						a_currentw.put(arena, temp);
+					}
 					int currentw = a_currentw.get(arena);
 					for (final Player p : arenap.keySet()) {
 						if(p.isOnline()){
