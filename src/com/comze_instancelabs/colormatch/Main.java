@@ -25,6 +25,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -430,6 +431,20 @@ public class Main extends JavaPlugin implements Listener {
     		}
     	}
     }
+	
+	@EventHandler
+	public void onBlockBreak(BlockBreakEvent event){
+		if(arenap_.containsKey(event.getPlayer().getName())){
+			event.setCancelled(true);
+		}
+	}
+	
+	@EventHandler
+	public void onBlockPlace(BlockPlaceEvent event){
+		if(arenap_.containsKey(event.getPlayer().getName())){
+			event.setCancelled(true);
+		}
+	}
 	
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {
