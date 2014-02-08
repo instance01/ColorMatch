@@ -896,7 +896,7 @@ public class Main extends JavaPlugin implements Listener {
 										p.setExp(1 - (0.16F * xpsec));
 										xpsecp.put(p, xpsec + 1);
 									}
-								}, (80L - (d * 20) - n) / 6, (80L - n) / 6));
+								}, (80L - (d * 20) - n) / 6, (80L - (d * 20) - n) / 6));
 
 								DyeColor dc = colors.get(currentw);
 								ItemStack wool = new ItemStack(Material.WOOL, 1, dc.getData());
