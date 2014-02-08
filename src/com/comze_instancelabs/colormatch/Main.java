@@ -74,7 +74,8 @@ public class Main extends JavaPlugin implements Listener {
 	public static HashMap<String, Integer> a_currentw = new HashMap<String, Integer>();
 
 	int rounds_per_game = 10;
-	int minplayers = 4;
+	//int minplayers = 4;
+	int default_max_players = 4;
 
 	boolean economy = true;
 	int reward = 30;
@@ -108,7 +109,7 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("config.auto_updating", true);
 		getConfig().addDefault("config.rounds_per_game", 10);
 		getConfig().addDefault("config.start_countdown", 5);
-		getConfig().addDefault("config.min_players", 4);
+		getConfig().addDefault("config.default_max_players", 4);
 		getConfig().addDefault("config.use_economy_reward", true);
 		getConfig().addDefault("config.money_reward_per_game", 30);
 		getConfig().addDefault("config.itemid", 264); // diamond
@@ -167,7 +168,7 @@ public class Main extends JavaPlugin implements Listener {
 
 	public void getConfigVars() {
 		rounds_per_game = getConfig().getInt("config.rounds_per_game");
-		minplayers = getConfig().getInt("config.min_players");
+	    default_max_players = getConfig().getInt("config.default_max_players");
 		reward = getConfig().getInt("config.money_reward");
 		itemid = getConfig().getInt("config.itemid");
 		itemamount = getConfig().getInt("config.itemamount");
@@ -273,7 +274,25 @@ public class Main extends JavaPlugin implements Listener {
 						}
 						ingame.clear();
 					}
-				} else if (action.equalsIgnoreCase("setdifficulty")) {
+				} else if (action.equalsIgnoreCase("setmaxplayers")) {
+					if (sender.hasPermission("colormatch.setup")) {
+						if (args.length > 2) {
+							String arena = args[1];
+							String playercount = args[2];
+							if(!isNumeric(playercount)){
+								playercount = Integer.toString(default_max_players);
+								sender.sendMessage("§cPlayercount is invalid. Setting to default value.");
+							}
+							if(!getConfig().isSet(arena)){
+								sender.sendMessage("§cCould not find this arena.");
+								return true;
+							}
+							this.setArenaMaxPlayers(arena, Integer.parseInt(playercount));
+						}else{
+							sender.sendMessage("§cUsage: /cm setmaxplayers [arena] [count].");
+						}
+					}
+				}  else if (action.equalsIgnoreCase("setdifficulty")) {
 					if (sender.hasPermission("colormatch.setup")) {
 						if (args.length > 2) {
 							String arena = args[1];
@@ -389,7 +408,7 @@ public class Main extends JavaPlugin implements Listener {
 				Sign s = this.getSignFromArena(arena);
 				if (s != null) {
 					s.setLine(1, "§2[Join]");
-					s.setLine(3, Integer.toString(count - 1) + "/" + Integer.toString(this.minplayers));
+					s.setLine(3, Integer.toString(count - 1) + "/" + Integer.toString(getArenaMaxPlayers(arena)));
 					s.update();
 				}
 			} catch (Exception e) {
@@ -543,7 +562,7 @@ public class Main extends JavaPlugin implements Listener {
 					}
 					event.setLine(1, "§2[Join]");
 					event.setLine(2, arena);
-					event.setLine(3, "0/" + Integer.toString(this.minplayers));
+					event.setLine(3, "0/" + Integer.toString(getArenaMaxPlayers(arena)));
 				}
 			}
 		}
@@ -705,7 +724,7 @@ public class Main extends JavaPlugin implements Listener {
 				count++;
 			}
 		}
-		if (count > minplayers - 1) {
+		if (count > getArenaMaxPlayers(arena) - 1) {
 			for (Player p_ : arenap.keySet()) {
 				final Player p__ = p_;
 				if (arenap.get(p_).equalsIgnoreCase(arena)) {
@@ -733,7 +752,7 @@ public class Main extends JavaPlugin implements Listener {
 		try {
 			Sign s = this.getSignFromArena(arena);
 			if (s != null) {
-				s.setLine(3, Integer.toString(count) + "/" + Integer.toString(this.minplayers));
+				s.setLine(3, Integer.toString(count) + "/" + Integer.toString(getArenaMaxPlayers(arena)));
 				s.update();
 			}
 		} catch (Exception e) {
@@ -1079,7 +1098,7 @@ public class Main extends JavaPlugin implements Listener {
 				Sign s = getSignFromArena(arena);
 				if (s != null) {
 					s.setLine(1, "§2[Join]");
-					s.setLine(3, "0/" + Integer.toString(minplayers));
+					s.setLine(3, "0/" + Integer.toString(getArenaMaxPlayers(arena)));
 					s.update();
 				}
 
@@ -1223,14 +1242,17 @@ public class Main extends JavaPlugin implements Listener {
 		this.saveConfig();
 	}
 
-	public int getArenaMinPlayers(String arena) {
-		//TODO arena min max players
-		return 0;
-	}
 	
 	public int getArenaMaxPlayers(String arena) {
-		//TODO arena min max players
-		return 0;
+		if(!getConfig().isSet(arena + ".max_players")){
+			setArenaMaxPlayers(arena, default_max_players);
+		}
+		return getConfig().getInt(arena + ".max_players");
+	}
+	
+	public void setArenaMaxPlayers(String arena, int players) {
+		getConfig().set(arena + ".max_players", players);
+		this.saveConfig();
 	}
 	
 	
