@@ -273,6 +273,7 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}
 						ingame.clear();
+						Bukkit.getScheduler().cancelAllTasks();
 					}
 				} else if (action.equalsIgnoreCase("setmaxplayers")) {
 					if (sender.hasPermission("colormatch.setup")) {
@@ -341,7 +342,18 @@ public class Main extends JavaPlugin implements Listener {
 							if (!ingame.containsKey(arena)) {
 								ingame.put(arena, false);
 							}
+							int count = 0;
+							for (Player p : arenap.keySet()) {
+								if (arenap.get(p).equalsIgnoreCase(arena)) {
+									count++;
+								}
+							}
+							if(count < 1){
+								sender.sendMessage("§cNoone is in this arena.");
+								return true;
+							}
 							if (!ingame.get(arena)) {
+								ingame.put(arena, true);
 								for (Player p_ : arenap.keySet()) {
 									if (arenap.get(p_).equalsIgnoreCase(arena)) {
 										final Player p__ = p_;
