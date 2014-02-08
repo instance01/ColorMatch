@@ -288,6 +288,7 @@ public class Main extends JavaPlugin implements Listener {
 								return true;
 							}
 							this.setArenaMaxPlayers(arena, Integer.parseInt(playercount));
+							sender.sendMessage("§eSuccessfully set!");
 						}else{
 							sender.sendMessage("§cUsage: /cm setmaxplayers [arena] [count].");
 						}
@@ -306,6 +307,7 @@ public class Main extends JavaPlugin implements Listener {
 								return true;
 							}
 							this.setArenaDifficulty(arena, Integer.parseInt(difficulty));
+							sender.sendMessage("§eSuccessfully set!");
 						}else{
 							sender.sendMessage("§cUsage: /cm setdifficulty [arena] [difficulty]. Difficulty can be 0, 1 or 2.");
 						}
