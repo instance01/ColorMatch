@@ -293,7 +293,7 @@ public class Main extends JavaPlugin implements Listener {
 							sender.sendMessage("§cUsage: /cm setmaxplayers [arena] [count].");
 						}
 					}
-				}  else if (action.equalsIgnoreCase("setdifficulty")) {
+				} else if (action.equalsIgnoreCase("setdifficulty")) {
 					if (sender.hasPermission("colormatch.setup")) {
 						if (args.length > 2) {
 							String arena = args[1];
