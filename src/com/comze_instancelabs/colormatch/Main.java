@@ -203,6 +203,7 @@ public class Main extends JavaPlugin implements Listener {
 							String arenaname = args[1];
 							getConfig().set(arenaname + ".name", arenaname);
 							this.saveConfig();
+							this.setArenaDifficulty(arenaname, 1);
 							sender.sendMessage(saved_arena);
 						}
 					}
@@ -806,6 +807,14 @@ public class Main extends JavaPlugin implements Listener {
 		}, 0, 20).getTaskId();
 		countdown_id.put(arena, t);
 
+		int difficulty = this.getArenaDifficulty(arena);
+		if(difficulty > 3 || difficulty < 0){
+			this.setArenaDifficulty(arena, 1);
+			difficulty = 1;
+		}
+		
+		final int d = difficulty;
+		
 		BukkitTask id__ = null;
 		id__ = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
 			@Override
@@ -850,7 +859,7 @@ public class Main extends JavaPlugin implements Listener {
 										p.setExp(1 - (0.16F * xpsec));
 										xpsecp.put(p, xpsec + 1);
 									}
-								}, (60L - n) / 6, (60L - n) / 6));
+								}, (80L - (d * 20) - n) / 6, (80L - n) / 6));
 
 								DyeColor dc = colors.get(currentw);
 								ItemStack wool = new ItemStack(Material.WOOL, 1, dc.getData());
@@ -882,7 +891,7 @@ public class Main extends JavaPlugin implements Listener {
 								}
 							}
 						}
-					}, 60L - n);
+					}, 80L - (d * 20) - n);
 
 					// BukkitTask id =
 					// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
@@ -894,7 +903,7 @@ public class Main extends JavaPlugin implements Listener {
 						}
 					}, 110 - (n / 2));
 					// update count
-					if (a_n.get(arena) < (60L - 10)) {
+					if (a_n.get(arena) < (80L - (d * 20) - 10)) {
 						a_n.put(arena, a_n.get(arena) + 4);
 					}
 				} catch (Exception e) {
@@ -1185,11 +1194,23 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	public int getArenaDifficulty(String arena) {
-
-		return 0;
+		if(!getConfig().isSet(arena + ".difficulty")){
+			setArenaDifficulty(arena, 1);
+		}
+		return getConfig().getInt(arena + ".difficulty");
+	}
+	
+	public void setArenaDifficulty(String arena, int difficulty) {
+		getConfig().set(arena + ".difficulty", difficulty);
+		this.saveConfig();
 	}
 
 	public int getArenaMinPlayers(String arena) {
+
+		return 0;
+	}
+	
+	public int getArenaMaxPlayers(String arena) {
 
 		return 0;
 	}
