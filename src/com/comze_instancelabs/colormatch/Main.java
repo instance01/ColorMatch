@@ -273,6 +273,24 @@ public class Main extends JavaPlugin implements Listener {
 						}
 						ingame.clear();
 					}
+				} else if (action.equalsIgnoreCase("setdifficulty")) {
+					if (sender.hasPermission("colormatch.setup")) {
+						if (args.length > 2) {
+							String arena = args[1];
+							String difficulty = args[2];
+							if(!isNumeric(difficulty)){
+								difficulty = "1";
+								sender.sendMessage("§cDifficulty is invalid. Possible difficulties: 0, 1, 2.");
+							}
+							if(!getConfig().isSet(arena)){
+								sender.sendMessage("§cCould not find this arena.");
+								return true;
+							}
+							this.setArenaDifficulty(arena, Integer.parseInt(difficulty));
+						}else{
+							sender.sendMessage("§cUsage: /cm setdifficulty [arena] [difficulty]. Difficulty can be 0, 1 or 2.");
+						}
+					}
 				} else if (action.equalsIgnoreCase("join")) {
 					if (args.length > 1) {
 						if (isValidArena(args[1])) {
@@ -1206,13 +1224,18 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	public int getArenaMinPlayers(String arena) {
-
+		//TODO arena min max players
 		return 0;
 	}
 	
 	public int getArenaMaxPlayers(String arena) {
-
+		//TODO arena min max players
 		return 0;
+	}
+	
+	
+	public boolean isNumeric(String s) {  
+	    return s.matches("[-+]?\\d*\\.?\\d+");  
 	}
 
 }
