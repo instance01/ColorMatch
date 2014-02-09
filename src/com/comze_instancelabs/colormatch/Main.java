@@ -76,7 +76,8 @@ public class Main extends JavaPlugin implements Listener {
 	int rounds_per_game = 10;
 	//int minplayers = 4;
 	int default_max_players = 4;
-
+	int default_min_players = 3;
+	
 	boolean economy = true;
 	int reward = 30;
 	int itemid = 264;
@@ -110,6 +111,7 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("config.rounds_per_game", 10);
 		getConfig().addDefault("config.start_countdown", 5);
 		getConfig().addDefault("config.default_max_players", 4);
+		getConfig().addDefault("config.default_min_players", 3);
 		getConfig().addDefault("config.use_economy_reward", true);
 		getConfig().addDefault("config.money_reward_per_game", 30);
 		getConfig().addDefault("config.itemid", 264); // diamond
@@ -132,8 +134,11 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("strings.starting_in2", "&a seconds.");
 
 		getConfig().options().copyDefaults(true);
+		if(getConfig().isSet("config.min_players")){
+			getConfig().set("config.min_players", null);
+		}
 		this.saveConfig();
-
+		
 		getConfigVars();
 
 		try {
@@ -169,6 +174,7 @@ public class Main extends JavaPlugin implements Listener {
 	public void getConfigVars() {
 		rounds_per_game = getConfig().getInt("config.rounds_per_game");
 	    default_max_players = getConfig().getInt("config.default_max_players");
+	    default_min_players = getConfig().getInt("config.default_min_players");
 		reward = getConfig().getInt("config.money_reward");
 		itemid = getConfig().getInt("config.itemid");
 		itemamount = getConfig().getInt("config.itemamount");
@@ -292,6 +298,25 @@ public class Main extends JavaPlugin implements Listener {
 							sender.sendMessage("§eSuccessfully set!");
 						}else{
 							sender.sendMessage("§cUsage: /cm setmaxplayers [arena] [count].");
+						}
+					}
+				} else if (action.equalsIgnoreCase("setminplayers")) {
+					if (sender.hasPermission("colormatch.setup")) {
+						if (args.length > 2) {
+							String arena = args[1];
+							String playercount = args[2];
+							if(!isNumeric(playercount)){
+								playercount = Integer.toString(default_min_players);
+								sender.sendMessage("§cPlayercount is invalid. Setting to default value.");
+							}
+							if(!getConfig().isSet(arena)){
+								sender.sendMessage("§cCould not find this arena.");
+								return true;
+							}
+							this.setArenaMinPlayers(arena, Integer.parseInt(playercount));
+							sender.sendMessage("§eSuccessfully set!");
+						}else{
+							sender.sendMessage("§cUsage: /cm setminplayers [arena] [count].");
 						}
 					}
 				} else if (action.equalsIgnoreCase("setdifficulty")) {
@@ -740,7 +765,7 @@ public class Main extends JavaPlugin implements Listener {
 				count++;
 			}
 		}
-		if (count > getArenaMaxPlayers(arena) - 1) {
+		if (count > getArenaMinPlayers(arena) - 1) {
 			for (Player p_ : arenap.keySet()) {
 				final Player p__ = p_;
 				if (arenap.get(p_).equalsIgnoreCase(arena)) {
@@ -761,6 +786,14 @@ public class Main extends JavaPlugin implements Listener {
 					}
 				}
 			}, 10);
+		}
+		
+		if(ingame.get(arena)){
+			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
+				public void run() {
+					p.teleport(getSpawnForPlayer(arena));
+				}
+			}, 5);
 		}
 
 		updateScoreboard(arena);
@@ -831,12 +864,6 @@ public class Main extends JavaPlugin implements Listener {
 		// setup ints arraylist
 		getAll(getSpawn(arena));
 
-		Sign s = this.getSignFromArena(arena);
-		if (s != null) {
-			s.setLine(1, "§4[Ingame]");
-			s.update();
-		}
-
 		// start countdown timer
 
 		int t = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
@@ -854,6 +881,14 @@ public class Main extends JavaPlugin implements Listener {
 				countdown_count.put(arena, count);
 				if (count < 0) {
 					countdown_count.put(arena, start_countdown);
+					
+					// update sign
+					Sign s = getSignFromArena(arena);
+					if (s != null) {
+						s.setLine(1, "§4[Ingame]");
+						s.update();
+					}
+					
 					Bukkit.getServer().getScheduler().cancelTask(countdown_id.get(arena));
 				}
 			}
@@ -1251,7 +1286,6 @@ public class Main extends JavaPlugin implements Listener {
 				}
 			}
 		} catch (Exception e) {
-			getLogger().info("asdf");
 			e.printStackTrace();
 		}
 	}
@@ -1290,6 +1324,18 @@ public class Main extends JavaPlugin implements Listener {
 	
 	public void setArenaMaxPlayers(String arena, int players) {
 		getConfig().set(arena + ".max_players", players);
+		this.saveConfig();
+	}
+	
+	public int getArenaMinPlayers(String arena) {
+		if(!getConfig().isSet(arena + ".min_players")){
+			setArenaMinPlayers(arena, default_min_players);
+		}
+		return getConfig().getInt(arena + ".min_players");
+	}
+	
+	public void setArenaMinPlayers(String arena, int players) {
+		getConfig().set(arena + ".min_players", players);
 		this.saveConfig();
 	}
 	
