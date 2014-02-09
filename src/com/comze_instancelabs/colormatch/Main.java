@@ -657,9 +657,11 @@ public class Main extends JavaPlugin implements Listener {
 				p.setAllowFlight(false);
 				p.setFlying(false);
 			}
-
+			
 			final String arena = arenap.get(p);
 
+			removeScoreboard(arena, p);
+			
 			if (flag) {
 				if (arenap.containsKey(p)) {
 					arenap.remove(p);
@@ -1091,16 +1093,17 @@ public class Main extends JavaPlugin implements Listener {
 				} catch (Exception e) {
 				}
 
+				//removeScoreboard(arena);
+				
 				ArrayList<Player> torem = new ArrayList<Player>();
 				determineWinners(arena);
 				for (Player p : arenap.keySet()) {
 					if (arenap.get(p).equalsIgnoreCase(arena)) {
+						removeScoreboard(arena, p);
 						leaveArena(p, false, false);
 						torem.add(p);
 					}
 				}
-
-				removeScoreboard(arena);
 
 				for (Player p : torem) {
 					arenap.remove(p);
@@ -1231,14 +1234,35 @@ public class Main extends JavaPlugin implements Listener {
 	public void removeScoreboard(String arena) {
 		try {
 			ScoreboardManager manager = Bukkit.getScoreboardManager();
-
+			Scoreboard sc = manager.getNewScoreboard();
+			
+			sc.clearSlot(DisplaySlot.SIDEBAR);
+			
+			getLogger().info("Removing scoreboard.");
+			
 			for (Player p : Bukkit.getOnlinePlayers()) {
+				p.setScoreboard(sc);
 				if (arenap.containsKey(p)) {
 					if (arenap.get(p).equalsIgnoreCase(arena)) {
-						p.setScoreboard(manager.getNewScoreboard());
+						getLogger().info(p.getName());
+						p.setScoreboard(sc);
+						p.setScoreboard(null);
 					}
 				}
 			}
+		} catch (Exception e) {
+			getLogger().info("asdf");
+			e.printStackTrace();
+		}
+	}
+	
+	public void removeScoreboard(String arena, Player p) {
+		try {
+			ScoreboardManager manager = Bukkit.getScoreboardManager();
+			Scoreboard sc = manager.getNewScoreboard();
+			
+			sc.clearSlot(DisplaySlot.SIDEBAR);
+			p.setScoreboard(sc);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
