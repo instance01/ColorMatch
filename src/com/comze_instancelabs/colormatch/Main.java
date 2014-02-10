@@ -700,6 +700,8 @@ public class Main extends JavaPlugin implements Listener {
 			}
 
 			updateScoreboard(arena);
+			
+			removeScoreboard(arena, p);
 
 			if (p.isOnline()) {
 				p.getInventory().setContents(pinv.get(p));
