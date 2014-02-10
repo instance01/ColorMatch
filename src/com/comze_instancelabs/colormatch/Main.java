@@ -788,6 +788,9 @@ public class Main extends JavaPlugin implements Listener {
 			}, 10);
 		}
 		
+		if (!ingame.containsKey(arena)) {
+			ingame.put(arena, false);
+		}
 		if(ingame.get(arena)){
 			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 				public void run() {
