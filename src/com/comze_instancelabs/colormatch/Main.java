@@ -776,7 +776,7 @@ public class Main extends JavaPlugin implements Listener {
 				p.teleport(getLobby(arena));
 				p.setFoodLevel(20);
 			}
-		}, 5);
+		}, 4);
 
 		int count = 0;
 		for (Player p_ : arenap.keySet()) {
@@ -792,7 +792,7 @@ public class Main extends JavaPlugin implements Listener {
 						public void run() {
 							p__.teleport(getSpawnForPlayer(arena));
 						}
-					}, 5);
+					}, 7);
 				}
 			}
 			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
@@ -815,7 +815,7 @@ public class Main extends JavaPlugin implements Listener {
 				public void run() {
 					p.teleport(getSpawnForPlayer(arena));
 				}
-			}, 5);
+			}, 7);
 		}
 
 		updateScoreboard(arena);
