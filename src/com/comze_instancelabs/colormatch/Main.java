@@ -101,7 +101,8 @@ public class Main extends JavaPlugin implements Listener {
 	public String you_won = "";
 	public String starting_in = "";
 	public String starting_in2 = "";
-
+	public String arena_full = "";
+	
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(this, this);
@@ -132,7 +133,8 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("strings.you_won", "&aYou won this round, awesome man! Here, enjoy your reward.");
 		getConfig().addDefault("strings.starting_in", "&aStarting in &6");
 		getConfig().addDefault("strings.starting_in2", "&a seconds.");
-
+		getConfig().addDefault("strings.arena_full", "&cThis arena is full!");
+		
 		getConfig().options().copyDefaults(true);
 		if(getConfig().isSet("config.min_players")){
 			getConfig().set("config.min_players", null);
@@ -197,6 +199,8 @@ public class Main extends JavaPlugin implements Listener {
 		you_won = getConfig().getString("strings.you_won").replaceAll("&", "§");
 		starting_in = getConfig().getString("strings.starting_in").replaceAll("&", "§");
 		starting_in2 = getConfig().getString("strings.starting_in2").replaceAll("&", "§");
+		arena_full = getConfig().getString("strings.arena_full").replaceAll("&", "§");
+
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -749,6 +753,19 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	public void joinLobby(final Player p, final String arena) {
+		// check first if max players are reached.
+		int count_ = 0;
+		for (Player p_ : arenap.keySet()) {
+			if (arenap.get(p_).equalsIgnoreCase(arena)) {
+				count_++;
+			}
+		}
+		if (count_ > getArenaMaxPlayers(arena) - 1) {
+			p.sendMessage(arena_full);
+			return;
+		}
+		
+		// continue
 		arenap.put(p, arena);
 		pinv.put(p, p.getInventory().getContents());
 		p.setGameMode(GameMode.SURVIVAL);
