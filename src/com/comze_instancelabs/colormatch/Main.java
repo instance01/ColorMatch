@@ -84,6 +84,7 @@ public class Main extends JavaPlugin implements Listener {
 	int itemamount = 1;
 	boolean command_reward = false;
 	String cmd = "";
+	boolean start_anouncement = false;
 
 	int start_countdown = 5;
 
@@ -103,6 +104,10 @@ public class Main extends JavaPlugin implements Listener {
 	public String starting_in2 = "";
 	public String arena_full = "";
 	
+	// anouncements
+	public String starting = "";
+	public String started = "";
+	
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(this, this);
@@ -119,7 +124,8 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("config.itemamount", 1);
 		getConfig().addDefault("config.use_command_reward", false);
 		getConfig().addDefault("config.command_reward", "pex user [user] group set ColorPro");
-
+		getConfig().addDefault("config.start_anouncement", false);
+		
 		getConfig().addDefault("strings.saved.arena", "&aSuccessfully saved arena.");
 		getConfig().addDefault("strings.saved.lobby", "&aSuccessfully saved lobby.");
 		getConfig().addDefault("strings.saved.setup", "&6Successfully saved spawn. Now setting up, might &2lag&6 a little bit.");
@@ -134,6 +140,8 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("strings.starting_in", "&aStarting in &6");
 		getConfig().addDefault("strings.starting_in2", "&a seconds.");
 		getConfig().addDefault("strings.arena_full", "&cThis arena is full!");
+		getConfig().addDefault("strings.starting_anouncement", "&aStarting a new ColorMatch Game in &6");
+		getConfig().addDefault("strings.started_anouncement", "&aA new ColorMatch Round has started!");
 		
 		getConfig().options().copyDefaults(true);
 		if(getConfig().isSet("config.min_players")){
@@ -184,7 +192,8 @@ public class Main extends JavaPlugin implements Listener {
 		command_reward = getConfig().getBoolean("config.use_command_reward");
 		cmd = getConfig().getString("config.command_reward");
 		start_countdown = getConfig().getInt("config.start_countdown");
-
+		start_anouncement = getConfig().getBoolean("config.start_anouncement");
+		
 		saved_arena = getConfig().getString("strings.saved.arena").replaceAll("&", "§");
 		saved_lobby = getConfig().getString("strings.saved.lobby").replaceAll("&", "§");
 		saved_setup = getConfig().getString("strings.saved.setup").replaceAll("&", "§");
@@ -200,6 +209,8 @@ public class Main extends JavaPlugin implements Listener {
 		starting_in = getConfig().getString("strings.starting_in").replaceAll("&", "§");
 		starting_in2 = getConfig().getString("strings.starting_in2").replaceAll("&", "§");
 		arena_full = getConfig().getString("strings.arena_full").replaceAll("&", "§");
+		starting = getConfig().getString("strings.starting_anouncement").replaceAll("&", "§");
+		started = getConfig().getString("strings.started_anouncement").replaceAll("&", "§");
 
 	}
 
@@ -887,7 +898,10 @@ public class Main extends JavaPlugin implements Listener {
 		getAll(getSpawn(arena));
 
 		// start countdown timer
-
+		if(start_anouncement){
+			Bukkit.getServer().broadcastMessage(starting + " " + Integer.toString(start_countdown));
+		}
+		
 		int t = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
 			public void run() {
 				if (!countdown_count.containsKey(arena)) {
@@ -903,6 +917,10 @@ public class Main extends JavaPlugin implements Listener {
 				countdown_count.put(arena, count);
 				if (count < 0) {
 					countdown_count.put(arena, start_countdown);
+					
+					if(start_anouncement){
+						Bukkit.getServer().broadcastMessage(started);
+					}
 					
 					// update sign
 					Sign s = getSignFromArena(arena);
