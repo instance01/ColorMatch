@@ -1070,11 +1070,9 @@ public class Main extends JavaPlugin implements Listener {
 
 	public void reset(final Location start) {
 		try {
-			// final MassBlockUpdate mbu =
-			// CraftMassBlockUpdate.createMassBlockUpdater(this,
-			// start.getWorld());
+			final MassBlockUpdate mbu = CraftMassBlockUpdate.createMassBlockUpdater(this, start.getWorld());
 
-			// mbu.setRelightingStrategy(MassBlockUpdate.RelightingStrategy.NEVER);
+			mbu.setRelightingStrategy(MassBlockUpdate.RelightingStrategy.NEVER);
 
 			if (ints.size() < 1) {
 				getAll(start);
@@ -1106,17 +1104,17 @@ public class Main extends JavaPlugin implements Listener {
 						for (int j_ = 0; j_ < 4; j_++) {
 							// Block b = start.getWorld().getBlockAt(new
 							// Location(start.getWorld(), x_ + i_, y, z_ + j_));
-							Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x_ + i_, y, z_ + j_));
-							// mbu.setBlock(x_ + i_, y, z_ + j_, 35, current);
-							// mbu.setBlock(x_ + i_, y_, z_ + j_, 89);
-							b.setType(Material.WOOL);
-							b.setData((byte) current);
+							//Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x_ + i_, y, z_ + j_));
+							mbu.setBlock(x_ + i_, y, z_ + j_, 35, current);
+							mbu.setBlock(x_ + i_, y_, z_ + j_, 89);
+							//b.setType(Material.WOOL);
+							//b.setData((byte) current);
 						}
 					}
 				}
 			}
 
-			// mbu.notifyClients();
+			mbu.notifyClients();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -1124,10 +1122,9 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	public void removeAllExceptOne(Location start, String arena) {
-		// final MassBlockUpdate mbu =
-		// CraftMassBlockUpdate.createMassBlockUpdater(m, start.getWorld());
+		final MassBlockUpdate mbu = CraftMassBlockUpdate.createMassBlockUpdater(m, start.getWorld());
 
-		// mbu.setRelightingStrategy(MassBlockUpdate.RelightingStrategy.NEVER);
+		mbu.setRelightingStrategy(MassBlockUpdate.RelightingStrategy.NEVER);
 
 		int x = start.getBlockX() - 32;
 		int y = start.getBlockY();
@@ -1139,12 +1136,12 @@ public class Main extends JavaPlugin implements Listener {
 				Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x + i, y, z + j));
 				if (b.getData() != data) {
 					b.setType(Material.AIR);
-					// mbu.setBlock(x + i, y, z + j, 0);
+					mbu.setBlock(x + i, y, z + j, 0);
 				}
 			}
 		}
 
-		// mbu.notifyClients();
+		mbu.notifyClients();
 	}
 
 	// [END] COPIED FROM MINIGAMESPARTY
