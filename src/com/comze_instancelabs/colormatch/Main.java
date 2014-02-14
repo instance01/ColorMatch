@@ -507,14 +507,16 @@ public class Main extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
-		if (arenap_.containsKey(event.getPlayer().getName())) {
+		//if (arenap_.containsKey(event.getPlayer().getName())) {
+		if(arenap.containsKey(event.getPlayer())){
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) {
-		if (arenap_.containsKey(event.getPlayer().getName())) {
+		//if (arenap_.containsKey(event.getPlayer().getName())) {
+		if(arenap.containsKey(event.getPlayer())){
 			event.setCancelled(true);
 		}
 	}
