@@ -250,11 +250,16 @@ public class Main extends JavaPlugin implements Listener {
 								}else{
 									this.removeArena(getSpawn(arenaname), this, arenaname);
 								}
+								try{
+									getSignFromArena(arenaname).getBlock().setType(Material.AIR);
+								}catch(Exception e){
+									
+								}
 								getConfig().set(arenaname, null);
 								this.saveConfig();
 								sender.sendMessage(removed_arena);
 							}else{
-								sender.sendMessage("§cArena appears to be invalid.");
+								sender.sendMessage(arena_invalid);
 							}
 						}
 					}
@@ -635,7 +640,11 @@ public class Main extends JavaPlugin implements Listener {
 				final Sign s = (Sign) event.getClickedBlock().getState();
 				if (s.getLine(0).toLowerCase().contains("colormatch")) {
 					if (s.getLine(1).equalsIgnoreCase("§2[join]")) {
-						joinLobby(event.getPlayer(), s.getLine(2));
+						if(isValidArena(s.getLine(2))){
+							joinLobby(event.getPlayer(), s.getLine(2));
+						}else{
+							event.getPlayer().sendMessage(arena_invalid);
+						}
 					}
 				}
 			}
