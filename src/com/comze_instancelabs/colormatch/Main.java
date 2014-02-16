@@ -488,6 +488,16 @@ public class Main extends JavaPlugin implements Listener {
 					sender.sendMessage("§2You can join with §c/cm join [name] §2and leave with §c/cm leave§2.");
 					sender.sendMessage("§2You can force an arena to start with §c/cm start [name]§2.");
 				}
+			} else {
+				sender.sendMessage("§6-= ColorMatch §2help: §6=-");
+				sender.sendMessage("§2To §6setup the main lobby §2, type in §c/cm setmainlobby");
+				sender.sendMessage("§2To §6setup §2a new arena, type in the following commands:");
+				sender.sendMessage("§2/cm createarena [name]");
+				sender.sendMessage("§2/cm setlobby [name] §6 - for the waiting lobby");
+				sender.sendMessage("§2/cm setup [name]");
+				sender.sendMessage("");
+				sender.sendMessage("§2You can join with §c/cm join [name] §2and leave with §c/cm leave§2.");
+				sender.sendMessage("§2You can force an arena to start with §c/cm start [name]§2.");
 			}
 			return true;
 		}
