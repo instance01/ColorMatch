@@ -22,6 +22,8 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -103,6 +105,7 @@ public class Main extends JavaPlugin implements Listener {
 	public String starting_in = "";
 	public String starting_in2 = "";
 	public String arena_full = "";
+	public String removed_arena = "";
 	
 	// anouncements
 	public String starting = "";
@@ -129,6 +132,7 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("strings.saved.arena", "&aSuccessfully saved arena.");
 		getConfig().addDefault("strings.saved.lobby", "&aSuccessfully saved lobby.");
 		getConfig().addDefault("strings.saved.setup", "&6Successfully saved spawn. Now setting up, might &2lag&6 a little bit.");
+		getConfig().addDefault("strings.removed_arena", "&cSuccessfully removed arena.");
 		getConfig().addDefault("strings.not_in_arena", "&cYou don't seem to be in an arena right now.");
 		getConfig().addDefault("strings.config_reloaded", "&6Successfully reloaded config.");
 		getConfig().addDefault("strings.arena_is_ingame", "&cThe arena appears to be ingame.");
@@ -211,7 +215,7 @@ public class Main extends JavaPlugin implements Listener {
 		arena_full = getConfig().getString("strings.arena_full").replaceAll("&", "§");
 		starting = getConfig().getString("strings.starting_anouncement").replaceAll("&", "§");
 		started = getConfig().getString("strings.started_anouncement").replaceAll("&", "§");
-
+		removed_arena = getConfig().getString("strings.removed_arena").replaceAll("&", "§");
 	}
 
 	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
@@ -227,6 +231,17 @@ public class Main extends JavaPlugin implements Listener {
 							this.saveConfig();
 							this.setArenaDifficulty(arenaname, 1);
 							sender.sendMessage(saved_arena);
+						}
+					}
+				} else if (action.equalsIgnoreCase("removearena")) {
+					// remove arena
+					if (args.length > 1) {
+						if (sender.hasPermission("colormatch.setup")) {
+							String arenaname = args[1];
+							getConfig().set(arenaname, null);
+							this.saveConfig();
+							this.removeArena(getSpawn(arenaname), this, arenaname);
+							sender.sendMessage(removed_arena);
 						}
 					}
 				} /*
@@ -845,6 +860,38 @@ public class Main extends JavaPlugin implements Listener {
 
 	}
 
+	
+	
+	// Arena removal
+	
+	public static void removeArena(Location start, Main main, String name_) {
+		int x = start.getBlockX() - 32;
+		int y = start.getBlockY();
+		int y_ = start.getBlockY() - 4;
+		int z = start.getBlockZ() - 32;
+
+
+		for (int i = 0; i < 16; i++) {
+			for (int j = 0; j < 16; j++) {
+				int x_ = x + i * 4;
+				int z_ = z + j * 4;
+
+				for (int i_ = 0; i_ < 4; i_++) {
+					for (int j_ = 0; j_ < 4; j_++) {
+						Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x_ + i_, y, z_ + j_));
+						b.setType(Material.AIR);
+						Block b_ = start.getWorld().getBlockAt(new Location(start.getWorld(), x_ + i_, y_, z_ + j_));
+						b_.setType(Material.AIR);
+					}
+				}
+			}
+		}
+	}
+
+	
+	
+	
+	
 	// COPIED FROM MINIGAMES PARTY
 	public static void setup(Location start, Main main, String name_) {
 		int x = start.getBlockX() - 32;
@@ -853,8 +900,6 @@ public class Main extends JavaPlugin implements Listener {
 		int z = start.getBlockZ() - 32;
 
 		int current = 0;
-		int temp = 4;
-		boolean cont = false;
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
@@ -932,6 +977,19 @@ public class Main extends JavaPlugin implements Listener {
 					}
 					
 					Bukkit.getServer().getScheduler().cancelTask(countdown_id.get(arena));
+				
+					
+					// clear hostile mobs on start:
+					for(Player p : arenap.keySet()){
+						if(arenap.get(p).equalsIgnoreCase(arena)){
+							for(Entity t : p.getNearbyEntities(64, 64, 64)){
+								if(t.getType() == EntityType.ZOMBIE || t.getType() == EntityType.SKELETON || t.getType() == EntityType.CREEPER || t.getType() == EntityType.CAVE_SPIDER || t.getType() == EntityType.SPIDER || t.getType() == EntityType.WITCH || t.getType() == EntityType.GIANT){
+									t.remove();
+								}
+							}
+							break;
+						}
+					}
 				}
 			}
 		}, 0, 20).getTaskId();
