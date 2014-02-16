@@ -111,6 +111,8 @@ public class Main extends JavaPlugin implements Listener {
 	public String starting = "";
 	public String started = "";
 	
+	public ColorMatchx32 cmx32;
+	
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(this, this);
@@ -155,6 +157,8 @@ public class Main extends JavaPlugin implements Listener {
 		
 		getConfigVars();
 
+		cmx32 = new ColorMatchx32(this);
+		
 		try {
 			Metrics metrics = new Metrics(this);
 			metrics.start();
@@ -171,6 +175,7 @@ public class Main extends JavaPlugin implements Listener {
 				economy = false;
 			}
 		}
+		
 	}
 
 	private boolean setupEconomy() {
@@ -240,7 +245,11 @@ public class Main extends JavaPlugin implements Listener {
 							String arenaname = args[1];
 							getConfig().set(arenaname, null);
 							this.saveConfig();
-							this.removeArena(getSpawn(arenaname), this, arenaname);
+							if(isArenax32(arenaname)){
+								this.removeArenax32(getSpawn(arenaname), this, arenaname);
+							}else{
+								this.removeArena(getSpawn(arenaname), this, arenaname);
+							}
 							sender.sendMessage(removed_arena);
 						}
 					}
@@ -280,6 +289,22 @@ public class Main extends JavaPlugin implements Listener {
 							this.saveConfig();
 							sender.sendMessage(saved_setup);
 							setup(p.getLocation(), this, arenaname);
+						}
+					}
+				} else if (action.equalsIgnoreCase("setupsmall")) {
+					if (args.length > 1) {
+						if (sender.hasPermission("colormatch.setup")) {
+							Player p = (Player) sender;
+							String arenaname = args[1];
+							getConfig().set(arenaname + ".spawn.world", p.getWorld().getName());
+							getConfig().set(arenaname + ".spawn.loc.x", p.getLocation().getBlockX());
+							getConfig().set(arenaname + ".spawn.loc.y", p.getLocation().getBlockY());
+							getConfig().set(arenaname + ".spawn.loc.z", p.getLocation().getBlockZ());
+							this.saveConfig();
+							sender.sendMessage(saved_setup);
+							//TODO Setup 32x32 arena
+							this.setArenax32(arenaname);
+							cmx32.setup(p.getLocation(), this, arenaname);
 						}
 					}
 				} else if (action.equalsIgnoreCase("setmainlobby")) {
@@ -889,6 +914,31 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	
+	public static void removeArenax32(Location start, Main main, String name_) {
+		int x = start.getBlockX() - 16;
+		int y = start.getBlockY();
+		int y_ = start.getBlockY() - 4;
+		int z = start.getBlockZ() - 16;
+
+
+		for (int i = 0; i < 8; i++) {
+			for (int j = 0; j < 8; j++) {
+				int x_ = x + i * 4;
+				int z_ = z + j * 4;
+
+				for (int i_ = 0; i_ < 4; i_++) {
+					for (int j_ = 0; j_ < 4; j_++) {
+						Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x_ + i_, y, z_ + j_));
+						b.setType(Material.AIR);
+						Block b_ = start.getWorld().getBlockAt(new Location(start.getWorld(), x_ + i_, y_, z_ + j_));
+						b_.setType(Material.AIR);
+					}
+				}
+			}
+		}
+	}
+
+	
 	
 	
 	
@@ -942,7 +992,11 @@ public class Main extends JavaPlugin implements Listener {
 		a_currentw.put(arena, 0);
 
 		// setup ints arraylist
-		getAll(getSpawn(arena));
+		if(isArenax32(arena)){
+			cmx32.getAll(getSpawn(arena));
+		}else{
+			getAll(getSpawn(arena));
+		}
 
 		// start countdown timer
 		if(start_anouncement){
@@ -1067,7 +1121,11 @@ public class Main extends JavaPlugin implements Listener {
 						// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
 						// new Runnable(){
 						public void run() {
-							removeAllExceptOne(getSpawn(arena), arena);
+							if(isArenax32(arena)){
+								cmx32.removeAllExceptOne(getSpawn(arena), arena);
+							}else{
+								removeAllExceptOne(getSpawn(arena), arena);
+							}
 							for (BukkitTask t : tasks) {
 								t.cancel();
 							}
@@ -1087,7 +1145,11 @@ public class Main extends JavaPlugin implements Listener {
 					BukkitTask id = Bukkit.getServer().getScheduler().runTaskLater(m, new Runnable() {
 						@Override
 						public void run() {
-							reset(getSpawn(arena));
+							if(isArenax32(arena)){
+								cmx32.reset(getSpawn(arena));
+							}else{
+								reset(getSpawn(arena));
+							}
 						}
 					}, 110 - (n / 2));
 					// update count
@@ -1264,7 +1326,11 @@ public class Main extends JavaPlugin implements Listener {
 				a_n.put(arena, 0);
 				a_currentw.put(arena, 0);
 
-				reset(getSpawn(arena));
+				if(isArenax32(arena)){
+					cmx32.reset(getSpawn(arena));
+				}else{
+					reset(getSpawn(arena));
+				}
 
 				// clean out offline players
 				clean();
@@ -1445,6 +1511,19 @@ public class Main extends JavaPlugin implements Listener {
 	
 	public boolean isNumeric(String s) {  
 	    return s.matches("[-+]?\\d*\\.?\\d+");  
+	}
+	
+	
+	public boolean isArenax32(String arena){
+		if(getConfig().isSet(arena + ".x32")){
+			return getConfig().getBoolean(arena + ".x32");
+		}
+		return false;
+	}
+	
+	public void setArenax32(String arena){
+		getConfig().set(arena + ".x32", true);
+		this.saveConfig();
 	}
 
 }
