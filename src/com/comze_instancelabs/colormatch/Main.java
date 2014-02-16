@@ -243,14 +243,19 @@ public class Main extends JavaPlugin implements Listener {
 					if (args.length > 1) {
 						if (sender.hasPermission("colormatch.setup")) {
 							String arenaname = args[1];
-							getConfig().set(arenaname, null);
-							this.saveConfig();
-							if(isArenax32(arenaname)){
-								this.removeArenax32(getSpawn(arenaname), this, arenaname);
+							if(isValidArena(arenaname)){
+								sender.sendMessage("§cRemoving " + arenaname + ". This will §6lag §ca little bit.");
+								if(isArenax32(arenaname)){
+									this.removeArenax32(getSpawn(arenaname), this, arenaname);
+								}else{
+									this.removeArena(getSpawn(arenaname), this, arenaname);
+								}
+								getConfig().set(arenaname, null);
+								this.saveConfig();
+								sender.sendMessage(removed_arena);
 							}else{
-								this.removeArena(getSpawn(arenaname), this, arenaname);
+								sender.sendMessage("§cArena appears to be invalid.");
 							}
-							sender.sendMessage(removed_arena);
 						}
 					}
 				} /*
