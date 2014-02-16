@@ -31,6 +31,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -688,6 +689,20 @@ public class Main extends JavaPlugin implements Listener {
 		}
 	}
 
+	
+	@EventHandler
+   	public void onPlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent event) {
+       	if(arenap.containsKey(event.getPlayer())){
+       		if(!event.getMessage().startsWith("/cm") && !event.getMessage().startsWith("/colormatch")){
+       			event.getPlayer().sendMessage("§cPlease use §6/cm leave §cto leave this minigame.");
+        		event.setCancelled(true);
+       			return;
+        	}
+       	}
+    }
+	
+	
+	
 	public Sign getSignFromArena(String arena) {
 		Location b_ = new Location(getServer().getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getInt(arena + ".sign.loc.x"), getConfig().getInt(arena + ".sign.loc.y"), getConfig().getInt(arena + ".sign.loc.z"));
 		BlockState bs = b_.getBlock().getState();
