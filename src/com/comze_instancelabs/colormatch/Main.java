@@ -31,6 +31,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -701,7 +702,7 @@ public class Main extends JavaPlugin implements Listener {
        	}
     }
 	
-	
+
 	
 	public Sign getSignFromArena(String arena) {
 		Location b_ = new Location(getServer().getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getInt(arena + ".sign.loc.x"), getConfig().getInt(arena + ".sign.loc.y"), getConfig().getInt(arena + ".sign.loc.z"));
@@ -764,20 +765,28 @@ public class Main extends JavaPlugin implements Listener {
 				public void run() {
 					if (p.isOnline()) {
 						p.teleport(getMainLobby());
-						p.setFlying(false);
+						//p.setFlying(false);
 					}
 				}
 			}, 5);
 
-			try {
+			if(lost.containsKey(p)){
 				lost.remove(p);
-			} catch (Exception e) {
 			}
 
-			if (p.isOnline()) {
+			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
+				public void run() {
+					if (p.isOnline()) {
+						p.setAllowFlight(false);
+						p.setFlying(false);
+					}
+				}
+			}, 10);
+			
+			/*if (p.isOnline()) {
 				p.setAllowFlight(false);
 				p.setFlying(false);
-			}
+			}*/
 			
 			final String arena = arenap.get(p);
 
@@ -995,7 +1004,11 @@ public class Main extends JavaPlugin implements Listener {
 				int x_ = x + i * 4;
 				int z_ = z + j * 4;
 
-				current = r.nextInt(colors.size());
+				int newcurrent = r.nextInt(colors.size());
+				if(current == newcurrent){
+					newcurrent = r.nextInt(colors.size());
+				}
+				current = newcurrent;
 				// ints.add(current);
 				ints.add((int) colors.get(current).getData());
 
@@ -1015,7 +1028,7 @@ public class Main extends JavaPlugin implements Listener {
 	final Main m = this;
 
 	static ArrayList<Integer> ints = new ArrayList<Integer>();
-	static ArrayList<DyeColor> colors = new ArrayList<DyeColor>(Arrays.asList(DyeColor.BLUE, DyeColor.RED, DyeColor.CYAN, DyeColor.BLACK, DyeColor.GREEN, DyeColor.YELLOW, DyeColor.ORANGE, DyeColor.PURPLE));
+	static ArrayList<DyeColor> colors = new ArrayList<DyeColor>(Arrays.asList(DyeColor.BLUE, DyeColor.RED, DyeColor.CYAN, DyeColor.BLACK, DyeColor.GREEN, DyeColor.YELLOW, DyeColor.ORANGE, DyeColor.PURPLE, DyeColor.LIME));
 	static Random r = new Random();
 
 	final public HashMap<String, BukkitTask> h = new HashMap<String, BukkitTask>();
@@ -1041,6 +1054,23 @@ public class Main extends JavaPlugin implements Listener {
 		if(start_anouncement){
 			Bukkit.getServer().broadcastMessage(starting + " " + Integer.toString(start_countdown));
 		}
+		
+		Bukkit.getServer().getScheduler().runTaskLater(this, new Runnable(){
+			public void run(){
+				// clear hostile mobs on start:
+				for(Player p : arenap.keySet()){
+					if(arenap.get(p).equalsIgnoreCase(arena)){
+						for(Entity t : p.getNearbyEntities(64, 64, 64)){
+							if(t.getType() == EntityType.ZOMBIE || t.getType() == EntityType.SKELETON || t.getType() == EntityType.CREEPER || t.getType() == EntityType.CAVE_SPIDER || t.getType() == EntityType.SPIDER || t.getType() == EntityType.WITCH || t.getType() == EntityType.GIANT){
+								t.remove();
+							}
+						}
+						break;
+					}
+				}
+			}
+		}, 20L);
+		
 		
 		int t = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
 			public void run() {
@@ -1070,19 +1100,6 @@ public class Main extends JavaPlugin implements Listener {
 					}
 					
 					Bukkit.getServer().getScheduler().cancelTask(countdown_id.get(arena));
-				
-					
-					// clear hostile mobs on start:
-					for(Player p : arenap.keySet()){
-						if(arenap.get(p).equalsIgnoreCase(arena)){
-							for(Entity t : p.getNearbyEntities(64, 64, 64)){
-								if(t.getType() == EntityType.ZOMBIE || t.getType() == EntityType.SKELETON || t.getType() == EntityType.CREEPER || t.getType() == EntityType.CAVE_SPIDER || t.getType() == EntityType.SPIDER || t.getType() == EntityType.WITCH || t.getType() == EntityType.GIANT){
-									t.remove();
-								}
-							}
-							break;
-						}
-					}
 				}
 			}
 		}, 0, 20).getTaskId();
