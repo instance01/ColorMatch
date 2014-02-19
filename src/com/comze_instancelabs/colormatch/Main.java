@@ -16,6 +16,7 @@ import org.bukkit.DyeColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -1058,6 +1059,7 @@ public class Main extends JavaPlugin implements Listener {
 			public void run(){
 				// clear hostile mobs on start:
 				for(Player p : arenap.keySet()){
+        			p.playSound(p.getLocation(), Sound.CAT_MEOW, 1, 0);
 					if(arenap.get(p).equalsIgnoreCase(arena)){
 						for(Entity t : p.getNearbyEntities(64, 64, 64)){
 							if(t.getType() == EntityType.ZOMBIE || t.getType() == EntityType.SKELETON || t.getType() == EntityType.CREEPER || t.getType() == EntityType.CAVE_SPIDER || t.getType() == EntityType.SPIDER || t.getType() == EntityType.WITCH || t.getType() == EntityType.GIANT){
