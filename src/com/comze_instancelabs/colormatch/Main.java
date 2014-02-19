@@ -153,7 +153,7 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("strings.arena_full", "&cThis arena is full!");
 		getConfig().addDefault("strings.starting_announcement", "&aStarting a new ColorMatch Game in &6");
 		getConfig().addDefault("strings.started_announcement", "&aA new ColorMatch Round has started!");
-		getConfig().addDefault("strings.winner_announcement", "&a<player> won the game on <arena>!");
+		getConfig().addDefault("strings.winner_announcement", "&6<player> &awon the game on arena &6<arena>!");
 
 		getConfig().options().copyDefaults(true);
 		if(getConfig().isSet("config.min_players")){
