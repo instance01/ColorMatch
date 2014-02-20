@@ -1119,11 +1119,16 @@ public class Main extends JavaPlugin implements Listener {
 					}
 					
 					// update sign
-					Sign s = getSignFromArena(arena);
-					if (s != null) {
-						s.setLine(1, "§4[Ingame]");
-						s.update();
-					}
+					Bukkit.getServer().getScheduler().runTask(m, new Runnable(){
+						public void run(){
+							Sign s = getSignFromArena(arena);
+							if (s != null) {
+								s.setLine(1, "§4[Ingame]");
+								s.update();
+							}
+						}
+					});
+					
 					
 					Bukkit.getServer().getScheduler().cancelTask(countdown_id.get(arena));
 				}
