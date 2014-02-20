@@ -1012,8 +1012,27 @@ public class Main extends JavaPlugin implements Listener {
 
 				int newcurrent = r.nextInt(colors.size());
 				if(current == newcurrent){
-					newcurrent = r.nextInt(colors.size());
+					//newcurrent = r.nextInt(colors.size());
+					if(newcurrent > 0){
+						newcurrent -= 1;
+					}else{
+						newcurrent += 2;
+					}
 				}
+				
+				if(ints.size() > 15){
+					//Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x_, y, z_));
+					//Bukkit.getLogger().info(Integer.toString(b.getLocation().getBlockX()) + " " + Integer.toString(b.getLocation().getBlockZ()) + " . " + Integer.toString(colors.get(newcurrent).getData()) + " " + Integer.toString(ints.get(ints.size() - 16)));
+					
+					if(ints.get(ints.size() - 16) == colors.get(newcurrent).getData()){
+						if(newcurrent > 0){
+							newcurrent -= 1;
+						}else{
+							newcurrent += 2;
+						}
+					}
+				}
+				
 				current = newcurrent;
 				// ints.add(current);
 				ints.add((int) colors.get(current).getData());
@@ -1034,7 +1053,7 @@ public class Main extends JavaPlugin implements Listener {
 	final Main m = this;
 
 	static ArrayList<Integer> ints = new ArrayList<Integer>();
-	static ArrayList<DyeColor> colors = new ArrayList<DyeColor>(Arrays.asList(DyeColor.BLUE, DyeColor.RED, DyeColor.CYAN, DyeColor.BLACK, DyeColor.GREEN, DyeColor.YELLOW, DyeColor.ORANGE, DyeColor.PURPLE, DyeColor.LIME));
+	static ArrayList<DyeColor> colors = new ArrayList<DyeColor>(Arrays.asList(DyeColor.BLUE, DyeColor.RED, DyeColor.CYAN, DyeColor.BLACK, DyeColor.GREEN, DyeColor.YELLOW, DyeColor.ORANGE, DyeColor.PURPLE));
 	static Random r = new Random();
 
 	final public HashMap<String, BukkitTask> h = new HashMap<String, BukkitTask>();
