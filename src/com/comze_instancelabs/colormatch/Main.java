@@ -116,6 +116,7 @@ public class Main extends JavaPlugin implements Listener {
 	public String started = "";
 	
 	public ColorMatchx32 cmx32;
+	public ColorMatchGlassMode cmglass;
 	
 	@Override
 	public void onEnable() {
@@ -164,6 +165,7 @@ public class Main extends JavaPlugin implements Listener {
 		getConfigVars();
 
 		cmx32 = new ColorMatchx32(this);
+		cmglass = new ColorMatchGlassMode(this);
 		
 		try {
 			Metrics metrics = new Metrics(this);
@@ -323,6 +325,22 @@ public class Main extends JavaPlugin implements Listener {
 							//TODO Setup 32x32 arena
 							this.setArenax32(arenaname);
 							cmx32.setup(p.getLocation(), this, arenaname);
+						}
+					}
+				} else if (action.equalsIgnoreCase("setupglass")) {
+					if (args.length > 1) {
+						if (sender.hasPermission("colormatch.setup")) {
+							Player p = (Player) sender;
+							String arenaname = args[1];
+							getConfig().set(arenaname + ".spawn.world", p.getWorld().getName());
+							getConfig().set(arenaname + ".spawn.loc.x", p.getLocation().getBlockX());
+							getConfig().set(arenaname + ".spawn.loc.y", p.getLocation().getBlockY());
+							getConfig().set(arenaname + ".spawn.loc.z", p.getLocation().getBlockZ());
+							this.saveConfig();
+							sender.sendMessage(saved_setup);
+							//TODO Setup 32x32 arena
+							this.setArenaGlassMode(arenaname);
+							cmglass.setup(p.getLocation(), this, arenaname);
 						}
 					}
 				} else if (action.equalsIgnoreCase("setmainlobby")) {
@@ -1071,6 +1089,8 @@ public class Main extends JavaPlugin implements Listener {
 		// setup ints arraylist
 		if(isArenax32(arena)){
 			cmx32.getAll(getSpawn(arena));
+		}else if(isArenaGlassMode(arena)){
+			cmglass.getAll(getSpawn(arena));
 		}else{
 			getAll(getSpawn(arena));
 		}
@@ -1210,6 +1230,8 @@ public class Main extends JavaPlugin implements Listener {
 						public void run() {
 							if(isArenax32(arena)){
 								cmx32.removeAllExceptOne(getSpawn(arena), arena);
+							}else if(isArenaGlassMode(arena)){
+								cmglass.removeAllExceptOne(getSpawn(arena), arena);
 							}else{
 								removeAllExceptOne(getSpawn(arena), arena);
 							}
@@ -1234,6 +1256,8 @@ public class Main extends JavaPlugin implements Listener {
 						public void run() {
 							if(isArenax32(arena)){
 								cmx32.reset(getSpawn(arena));
+							}else if(isArenaGlassMode(arena)){
+								cmglass.reset(getSpawn(arena));
 							}else{
 								reset(getSpawn(arena));
 							}
@@ -1415,6 +1439,8 @@ public class Main extends JavaPlugin implements Listener {
 
 				if(isArenax32(arena)){
 					cmx32.reset(getSpawn(arena));
+				}else if(isArenaGlassMode(arena)){
+					cmglass.reset(getSpawn(arena));
 				}else{
 					reset(getSpawn(arena));
 				}
@@ -1615,6 +1641,18 @@ public class Main extends JavaPlugin implements Listener {
 	
 	public void setArenax32(String arena){
 		getConfig().set(arena + ".x32", true);
+		this.saveConfig();
+	}
+	
+	public boolean isArenaGlassMode(String arena){
+		if(getConfig().isSet(arena + ".glassmode")){
+			return getConfig().getBoolean(arena + ".glassmode");
+		}
+		return false;
+	}
+	
+	public void setArenaGlassMode(String arena){
+		getConfig().set(arena + ".glassmode", true);
 		this.saveConfig();
 	}
 
