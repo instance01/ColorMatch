@@ -717,7 +717,7 @@ public class Main extends JavaPlugin implements Listener {
 	
 	@EventHandler
    	public void onPlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent event) {
-       	if(arenap.containsKey(event.getPlayer())){
+       	if(arenap.containsKey(event.getPlayer()) && !event.getPlayer().isOp()){
        		if(!event.getMessage().startsWith("/cm") && !event.getMessage().startsWith("/colormatch")){
        			event.getPlayer().sendMessage("§cPlease use §6/cm leave §cto leave this minigame.");
         		event.setCancelled(true);
@@ -1407,9 +1407,14 @@ public class Main extends JavaPlugin implements Listener {
 				determineWinners(arena);
 				for (Player p : arenap.keySet()) {
 					if (arenap.get(p).equalsIgnoreCase(arena)) {
-						removeScoreboard(arena, p);
 						leaveArena(p, false, false);
 						torem.add(p);
+					}
+				}
+				
+				for (Player p : arenap.keySet()) {
+					if (arenap.get(p).equalsIgnoreCase(arena)) {
+						removeScoreboard(arena, p);
 					}
 				}
 
