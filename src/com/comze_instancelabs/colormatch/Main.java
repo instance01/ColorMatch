@@ -388,7 +388,7 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}
 						ingame.clear();
-						Bukkit.getScheduler().cancelAllTasks();
+						Bukkit.getScheduler().cancelTasks(this);
 					}
 				} else if (action.equalsIgnoreCase("setmaxplayers")) {
 					if (sender.hasPermission("colormatch.setup")) {
