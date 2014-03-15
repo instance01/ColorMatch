@@ -44,6 +44,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.material.Wool;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -77,6 +79,8 @@ public class Main extends JavaPlugin implements Listener {
 	public static HashMap<String, Integer> a_round = new HashMap<String, Integer>();
 	public static HashMap<String, Integer> a_n = new HashMap<String, Integer>();
 	public static HashMap<String, Integer> a_currentw = new HashMap<String, Integer>();
+	public static HashMap<String, AClass> pclass = new HashMap<String, AClass>(); // player -> class
+	public static HashMap<String, AClass> aclasses = new HashMap<String, AClass>(); // classname -> class
 
 	int rounds_per_game = 10;
 	//int minplayers = 4;
@@ -139,7 +143,12 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("config.start_announcement", false);
 		getConfig().addDefault("config.winner_announcement", false);
 		getConfig().addDefault("config.game_on_join", false);
-		
+
+		getConfig().addDefault("config.kits.default.name", "default");
+		getConfig().addDefault("config.kits.default.potioneffect", "SPEED");
+		getConfig().addDefault("config.kits.default.amplifier", 1);
+		getConfig().addDefault("config.kits.default.lore", "The default class.");
+
 		getConfig().addDefault("strings.saved.arena", "&aSuccessfully saved arena.");
 		getConfig().addDefault("strings.saved.lobby", "&aSuccessfully saved lobby.");
 		getConfig().addDefault("strings.saved.setup", "&6Successfully saved spawn. Now setting up, might &2lag&6 a little bit.");
@@ -187,6 +196,8 @@ public class Main extends JavaPlugin implements Listener {
 				economy = false;
 			}
 		}
+		
+		loadClasses();
 		
 	}
 
@@ -507,6 +518,33 @@ public class Main extends JavaPlugin implements Listener {
 								}, 10);
 							}
 						}
+					}
+				} else if(action.equalsIgnoreCase("changekit")){
+					Player p = (Player)sender;
+					if(args.length > 1){
+						if(arenap.containsKey(p)){
+							if(aclasses.containsKey(args[1])){
+								if(args[1].equalsIgnoreCase("default")){
+									this.setClass(args[1], p.getName());
+									sender.sendMessage("§aKit successfully set!");
+									return true;
+								}
+								if(p.hasPermission("colormatch.kit." + args[1])){
+									this.setClass(args[1], p.getName());
+									sender.sendMessage("§aKit successfully set!");
+								}
+							}else{
+								String all = "  ";
+								for(String class_ : aclasses.keySet()){
+									all += class_ + ", ";
+								}
+								sender.sendMessage("§cThis is not a valid kit. Possible ones:§3" + all.substring(0, all.length() - 2));
+							}
+						}else{
+							sender.sendMessage("§cYou are not in an arena right now.");
+						}
+					}else{
+						sender.sendMessage("§cUsage: §a/cm changekit [name].");
 					}
 				} else if (action.equalsIgnoreCase("reload")) {
 					if (sender.hasPermission("colormatch.reload")) {
@@ -832,6 +870,14 @@ public class Main extends JavaPlugin implements Listener {
 					if (p.isOnline()) {
 						p.teleport(getMainLobby());
 						//p.setFlying(false);
+						for(PotionEffect pe : p.getActivePotionEffects()){
+							try{
+								if(p.hasPotionEffect(pe.getType())){
+									p.removePotionEffect(pe.getType());
+								}
+							}catch(Exception e){	
+							}
+						}
 					}
 				}
 			}, 5);
@@ -1193,6 +1239,15 @@ public class Main extends JavaPlugin implements Listener {
 						}
 					});
 					
+					for (Player p : arenap.keySet()) {
+						if (arenap.get(p).equalsIgnoreCase(arena)) {
+							if(pclass.containsKey(p.getName())){
+								m.getClass(p.getName());
+							}else{
+								//setClass("default", p.getName());
+							}
+						}
+					}
 					
 					Bukkit.getServer().getScheduler().cancelTask(countdown_id.get(arena));
 				}
@@ -1730,6 +1785,32 @@ public class Main extends JavaPlugin implements Listener {
 			getConfig().set(arena + ".claymode", null);
 		}
 		this.saveConfig();
+	}
+
+	
+	public void getClass(String player){
+		AClass c = pclass.get(player);
+		getServer().getPlayer(player).getInventory().clear();
+		getServer().getPlayer(player).getInventory().setArmorContents(null);
+		getServer().getPlayer(player).updateInventory();
+		getServer().getPlayer(player).addPotionEffect(c.potioneffect);
+		getServer().getPlayer(player).updateInventory();
+	}
+	
+	public void setClass(String classname, String player){
+		pclass.put(player, aclasses.get(classname));
+	}
+	
+	public void loadClasses(){
+		if(getConfig().isSet("config.kits")){
+			for(String aclass : getConfig().getConfigurationSection("config.kits.").getKeys(false)){
+				AClass n = new AClass(this, aclass, new PotionEffect(PotionEffectType.getByName(getConfig().getString("config.kits." + aclass + ".potioneffect")), 20 * 64, getConfig().getInt("config.kits." + aclass + ".amplifier")));
+				aclasses.put(aclass, n);
+				if(!getConfig().isSet("config.kits." + aclass + ".potioneffect") || !getConfig().isSet("config.kits." + aclass + ".lore")){
+					getLogger().warning("One of the classes found in the config file is invalid: " + aclass + ". Missing itemid or lore!");
+				}
+			}
+		}
 	}
 
 }
