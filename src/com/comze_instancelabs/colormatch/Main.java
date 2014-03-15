@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -137,6 +138,7 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("config.command_reward", "pex user <player> group set ColorPro");
 		getConfig().addDefault("config.start_announcement", false);
 		getConfig().addDefault("config.winner_announcement", false);
+		getConfig().addDefault("config.game_on_join", false);
 		
 		getConfig().addDefault("strings.saved.arena", "&aSuccessfully saved arena.");
 		getConfig().addDefault("strings.saved.lobby", "&aSuccessfully saved lobby.");
@@ -580,8 +582,8 @@ public class Main extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
+		final Player p = event.getPlayer();
 		if (left_players.contains(event.getPlayer().getName())) {
-			final Player p = event.getPlayer();
 			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 				public void run() {
 					p.teleport(getMainLobby());
@@ -589,6 +591,28 @@ public class Main extends JavaPlugin implements Listener {
 				}
 			}, 5);
 			left_players.remove(event.getPlayer().getName());
+		}
+		
+		
+		if(getConfig().getBoolean("config.game_on_join")){
+			int c = 0;
+			final List<String> arenas = new ArrayList<String>();
+			for (String arena : getConfig().getKeys(false)) {
+				if (!arena.equalsIgnoreCase("mainlobby") && !arena.equalsIgnoreCase("strings") && !arena.equalsIgnoreCase("config")) {
+					c++;
+					arenas.add(arena);
+				}
+			}
+			if(c < 1){
+				getLogger().severe("Couldn't find any arena even though game_on_join was turned on. Please setup an arena to fix this!");
+				return;
+			}
+			
+			Bukkit.getScheduler().runTaskLater(this, new Runnable(){
+				public void run(){
+					joinLobby(p, arenas.get(0));
+				}
+			}, 30L);
 		}
 	}
 
