@@ -519,7 +519,7 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}
 					}
-				} else if(action.equalsIgnoreCase("changekit")){
+				} else if(action.equalsIgnoreCase("changekit")){ //TODO kit gui
 					Player p = (Player)sender;
 					if(args.length > 1){
 						if(arenap.containsKey(p)){
@@ -545,6 +545,13 @@ public class Main extends JavaPlugin implements Listener {
 						}
 					}else{
 						sender.sendMessage("§cUsage: §a/cm changekit [name].");
+					}
+				} else if (action.equalsIgnoreCase("kitgui")) {
+					Player p = (Player)sender;
+					if(arenap.containsKey(p)){
+						openGUI(this, p.getName());
+					}else{
+						sender.sendMessage("§cYou are not in an arena right now.");
 					}
 				} else if (action.equalsIgnoreCase("reload")) {
 					if (sender.hasPermission("colormatch.reload")) {
@@ -1811,6 +1818,29 @@ public class Main extends JavaPlugin implements Listener {
 				}
 			}
 		}
+	}
+	
+	
+	public void openGUI(final Main m, String p) {
+		IconMenu iconm = new IconMenu("Shop", 18, new IconMenu.OptionClickEventHandler() {
+			@Override
+			public void onOptionClick(IconMenu.OptionClickEvent event) {
+				String d = event.getName();
+				Player p = event.getPlayer();
+				if(aclasses.containsKey(d)){
+					m.setClass(d, p.getName());
+				}
+				event.setWillClose(true);
+			}
+		}, m);
+		
+		int c = 0;
+		for(String ac : aclasses.keySet()){
+			iconm.setOption(c, new ItemStack(Material.SLIME_BALL), ac, m.getConfig().getString("config.kits." + ac + ".lore"));
+			c++;
+		}
+		
+		iconm.open(Bukkit.getPlayerExact(p));
 	}
 
 }
