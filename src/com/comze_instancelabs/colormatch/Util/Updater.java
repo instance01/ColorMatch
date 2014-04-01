@@ -1,4 +1,4 @@
-package com.comze_instancelabs.colormatch;
+package com.comze_instancelabs.colormatch.Util;
 
 /*
  * Updater for Bukkit.

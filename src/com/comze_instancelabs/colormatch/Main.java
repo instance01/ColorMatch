@@ -52,6 +52,8 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 
+import com.comze_instancelabs.colormatch.Util.Metrics;
+import com.comze_instancelabs.colormatch.Util.Updater;
 import com.google.common.collect.Maps;
 
 public class Main extends JavaPlugin implements Listener {
@@ -120,6 +122,7 @@ public class Main extends JavaPlugin implements Listener {
 	public String starting = "";
 	public String started = "";
 	
+	public ColorMatchx32Clay cmx32clay;
 	public ColorMatchx32 cmx32;
 	public ColorMatchGlassMode cmglass;
 	public ColorMatchClayMode cmclay;
@@ -176,6 +179,7 @@ public class Main extends JavaPlugin implements Listener {
 		
 		getConfigVars();
 
+		cmx32clay = new ColorMatchx32Clay(this);
 		cmx32 = new ColorMatchx32(this);
 		cmglass = new ColorMatchGlassMode(this);
 		cmclay = new ColorMatchClayMode(this);
@@ -340,6 +344,22 @@ public class Main extends JavaPlugin implements Listener {
 							//TODO Setup 32x32 arena
 							this.setArenax32(arenaname);
 							cmx32.setup(p.getLocation(), this, arenaname);
+						}
+					}
+				} else if (action.equalsIgnoreCase("setupsmallclay")) {
+					if (args.length > 1) {
+						if (sender.hasPermission("colormatch.setup")) {
+							Player p = (Player) sender;
+							String arenaname = args[1];
+							getConfig().set(arenaname + ".spawn.world", p.getWorld().getName());
+							getConfig().set(arenaname + ".spawn.loc.x", p.getLocation().getBlockX());
+							getConfig().set(arenaname + ".spawn.loc.y", p.getLocation().getBlockY());
+							getConfig().set(arenaname + ".spawn.loc.z", p.getLocation().getBlockZ());
+							this.saveConfig();
+							sender.sendMessage(saved_setup);
+							//TODO Setup 32x32 arena
+							this.setArenax32ClayMode(arenaname, true);
+							cmx32clay.setup(p.getLocation(), this, arenaname);
 						}
 					}
 				} else if (action.equalsIgnoreCase("setupglass")) {
@@ -1184,6 +1204,8 @@ public class Main extends JavaPlugin implements Listener {
 		// setup ints arraylist
 		if(isArenax32(arena)){
 			cmx32.getAll(getSpawn(arena));
+		}else if(isArenax32ClayMode(arena)){
+			cmx32clay.getAll(getSpawn(arena));
 		}else if(isArenaGlassMode(arena)){
 			cmglass.getAll(getSpawn(arena));
 		}else if(isArenaClayMode(arena)){
@@ -1336,6 +1358,8 @@ public class Main extends JavaPlugin implements Listener {
 						public void run() {
 							if(isArenax32(arena)){
 								cmx32.removeAllExceptOne(getSpawn(arena), arena);
+							}else if(isArenax32ClayMode(arena)){
+								cmx32clay.removeAllExceptOne(getSpawn(arena), arena);
 							}else if(isArenaGlassMode(arena)){
 								cmglass.removeAllExceptOne(getSpawn(arena), arena);
 							}else if(isArenaClayMode(arena)){
@@ -1364,6 +1388,8 @@ public class Main extends JavaPlugin implements Listener {
 						public void run() {
 							if(isArenax32(arena)){
 								cmx32.reset(getSpawn(arena));
+							}else if(isArenax32ClayMode(arena)){
+								cmx32clay.reset(getSpawn(arena));
 							}else if(isArenaGlassMode(arena)){
 								cmglass.reset(getSpawn(arena));
 							}else if(isArenaClayMode(arena)){
@@ -1554,6 +1580,8 @@ public class Main extends JavaPlugin implements Listener {
 
 				if(isArenax32(arena)){
 					cmx32.reset(getSpawn(arena));
+				}else if(isArenax32ClayMode(arena)){
+					cmx32clay.reset(getSpawn(arena));
 				}else if(isArenaGlassMode(arena)){
 					cmglass.reset(getSpawn(arena));
 				}else if(isArenaClayMode(arena)){
@@ -1790,6 +1818,23 @@ public class Main extends JavaPlugin implements Listener {
 			getConfig().set(arena + ".claymode", true);
 		}else{
 			getConfig().set(arena + ".claymode", null);
+		}
+		this.saveConfig();
+	}
+	
+	
+	public boolean isArenax32ClayMode(String arena){
+		if(getConfig().isSet(arena + ".x32claymode")){
+			return getConfig().getBoolean(arena + ".x32claymode");
+		}
+		return false;
+	}
+	
+	public void setArenax32ClayMode(String arena, boolean f){
+		if(f){
+			getConfig().set(arena + ".x32claymode", true);
+		}else{
+			getConfig().set(arena + ".x32claymode", null);
 		}
 		this.saveConfig();
 	}
