@@ -83,6 +83,7 @@ public class Main extends JavaPlugin implements Listener {
 	public static HashMap<String, Integer> a_currentw = new HashMap<String, Integer>();
 	public static HashMap<String, AClass> pclass = new HashMap<String, AClass>(); // player -> class
 	public static HashMap<String, AClass> aclasses = new HashMap<String, AClass>(); // classname -> class
+	public static HashMap<String, Boolean> pseenfall = new HashMap<String, Boolean>();
 
 	int rounds_per_game = 10;
 	//int minplayers = 4;
@@ -738,6 +739,9 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}
 					}, 5);
+					if(!pseenfall.containsKey(p.getName()) || !pseenfall.containsKey(p.getName())){
+						pseenfall.put(p.getName(), true);
+					}
 					p.sendMessage(you_fell);
 				}
 			}
@@ -1007,8 +1011,8 @@ public class Main extends JavaPlugin implements Listener {
 		
 		// continue
 		arenap.put(p, arena);
-		pinv.put(p, p.getInventory().getContents());
 		p.setGameMode(GameMode.SURVIVAL);
+		pinv.put(p, p.getInventory().getContents());
 		p.getInventory().clear();
 		p.updateInventory();
 		Bukkit.getScheduler().runTaskLater(this, new Runnable() {
@@ -1341,7 +1345,7 @@ public class Main extends JavaPlugin implements Listener {
 								DyeColor dc = colors.get(currentw);
 								ItemStack wool = new ItemStack(Material.WOOL, 1, dc.getData());
 								ItemMeta m = wool.getItemMeta();
-								m.setDisplayName(dyeToChat(dc) + dc.name());
+								m.setDisplayName(dyeToChat(dc) + "" + ChatColor.BOLD + dc.name());
 								wool.setItemMeta(m);
 								for (int i = 0; i < 9; i++) {
 									p.getInventory().setItem(i, wool);
