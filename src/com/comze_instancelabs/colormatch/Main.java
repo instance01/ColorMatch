@@ -739,10 +739,13 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}
 					}, 5);
-					if(!pseenfall.containsKey(p.getName()) || !pseenfall.containsKey(p.getName())){
+					if(!pseenfall.containsKey(p.getName())){
+						pseenfall.put(p.getName(), false);
+					}
+					if(!pseenfall.get(p.getName())){
+						p.sendMessage(you_fell);
 						pseenfall.put(p.getName(), true);
 					}
-					p.sendMessage(you_fell);
 				}
 			}
 			if (event.getPlayer().getLocation().getBlockY() < getSpawn(arenap_.get(event.getPlayer().getName())).getBlockY() - 2) {
@@ -915,6 +918,10 @@ public class Main extends JavaPlugin implements Listener {
 
 			if(lost.containsKey(p)){
 				lost.remove(p);
+			}
+			
+			if(pseenfall.containsKey(p.getName())){
+				pseenfall.remove(p.getName());
 			}
 
 			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
@@ -1337,10 +1344,10 @@ public class Main extends JavaPlugin implements Listener {
 											xpsecp.put(p, 1);
 										}
 										int xpsec = xpsecp.get(p);
-										p.setExp(1 - (0.16F * xpsec));
+										p.setExp(1 - (0.083F * xpsec));
 										xpsecp.put(p, xpsec + 1);
 									}
-								}, (80L - (d * 20) - n) / 6, (80L - (d * 20) - n) / 6));
+								}, (80L - (d * 20) - n) / 12, (80L - (d * 20) - n) / 12));
 
 								DyeColor dc = colors.get(currentw);
 								ItemStack wool = new ItemStack(Material.WOOL, 1, dc.getData());
