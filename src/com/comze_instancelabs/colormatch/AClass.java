@@ -10,7 +10,7 @@ public class AClass {
 	
 	public AClass(Main m, String name, PotionEffect pot){
 		this.m = m;
-		this.name = name;
+		this.name = name.replaceAll("&", "§");
 		this.potioneffect = pot;
 	}
 }

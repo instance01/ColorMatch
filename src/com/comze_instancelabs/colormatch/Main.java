@@ -151,7 +151,8 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("config.kits.default.name", "default");
 		getConfig().addDefault("config.kits.default.potioneffect", "SPEED");
 		getConfig().addDefault("config.kits.default.amplifier", 1);
-		getConfig().addDefault("config.kits.default.lore", "The default class.");
+		getConfig().addDefault("config.kits.default.gui_item_id", 341);
+		getConfig().addDefault("config.kits.default.lore", "&2The default class.");
 
 		getConfig().addDefault("strings.saved.arena", "&aSuccessfully saved arena.");
 		getConfig().addDefault("strings.saved.lobby", "&aSuccessfully saved lobby.");
@@ -342,7 +343,6 @@ public class Main extends JavaPlugin implements Listener {
 							getConfig().set(arenaname + ".spawn.loc.z", p.getLocation().getBlockZ());
 							this.saveConfig();
 							sender.sendMessage(saved_setup);
-							//TODO Setup 32x32 arena
 							this.setArenax32(arenaname);
 							cmx32.setup(p.getLocation(), this, arenaname);
 						}
@@ -358,7 +358,6 @@ public class Main extends JavaPlugin implements Listener {
 							getConfig().set(arenaname + ".spawn.loc.z", p.getLocation().getBlockZ());
 							this.saveConfig();
 							sender.sendMessage(saved_setup);
-							//TODO Setup 32x32 arena
 							this.setArenax32ClayMode(arenaname, true);
 							cmx32clay.setup(p.getLocation(), this, arenaname);
 						}
@@ -540,7 +539,21 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}
 					}
-				} else if(action.equalsIgnoreCase("changekit")){ //TODO kit gui
+				} else if (action.equalsIgnoreCase("stop")) {
+					if (args.length > 1) {
+						if (sender.hasPermission("colormatch.stop")) {
+							final String arena = args[1];
+							if (!ingame.containsKey(arena)) {
+								return true;
+							}
+							if (ingame.get(arena)) {
+								if(h.containsKey(arena)){
+									stop(h.get(arena), arena);
+								}
+							}
+						}
+					}
+				} else if(action.equalsIgnoreCase("changekit")){
 					Player p = (Player)sender;
 					if(args.length > 1){
 						if(arenap.containsKey(p)){
@@ -1346,6 +1359,8 @@ public class Main extends JavaPlugin implements Listener {
 										int xpsec = xpsecp.get(p);
 										p.setExp(1 - (0.083F * xpsec));
 										xpsecp.put(p, xpsec + 1);
+										//TODO add that maybe?
+										//p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 0);
 									}
 								}, (80L - (d * 20) - n) / 12, (80L - (d * 20) - n) / 12));
 
@@ -1878,7 +1893,7 @@ public class Main extends JavaPlugin implements Listener {
 	
 	
 	public void openGUI(final Main m, String p) {
-		IconMenu iconm = new IconMenu("Shop", 18, new IconMenu.OptionClickEventHandler() {
+		IconMenu iconm = new IconMenu("Kits", 18, new IconMenu.OptionClickEventHandler() {
 			@Override
 			public void onOptionClick(IconMenu.OptionClickEvent event) {
 				String d = event.getName();
@@ -1892,7 +1907,12 @@ public class Main extends JavaPlugin implements Listener {
 		
 		int c = 0;
 		for(String ac : aclasses.keySet()){
-			iconm.setOption(c, new ItemStack(Material.SLIME_BALL), ac, m.getConfig().getString("config.kits." + ac + ".lore"));
+			if(getConfig().isSet("config.kits." + ac + ".gui_item_id")){
+				iconm.setOption(c, new ItemStack(Material.getMaterial(getConfig().getInt("config.kits." + ac + ".gui_item_id"))), ac, m.getConfig().getString("config.kits." + ac + ".lore").replaceAll("&", "§"));
+			}else{
+				iconm.setOption(c, new ItemStack(Material.SLIME_BALL), ac, m.getConfig().getString("config.kits." + ac + ".lore").replaceAll("&", "§"));
+			}
+			
 			c++;
 		}
 		
