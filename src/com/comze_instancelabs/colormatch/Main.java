@@ -103,6 +103,7 @@ public class Main extends JavaPlugin implements Listener {
 	String cmd = "";
 	boolean start_announcement = false;
 	boolean winner_announcement = false;
+	boolean bling_sounds = false;
 	
 	int start_countdown = 5;
 
@@ -153,6 +154,7 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("config.start_announcement", false);
 		getConfig().addDefault("config.winner_announcement", false);
 		getConfig().addDefault("config.game_on_join", false);
+		getConfig().addDefault("config.bling_sounds", false);
 
 		getConfig().addDefault("config.kits.default.name", "default");
 		getConfig().addDefault("config.kits.default.potioneffect", "SPEED");
@@ -239,6 +241,7 @@ public class Main extends JavaPlugin implements Listener {
 		start_countdown = getConfig().getInt("config.start_countdown");
 		start_announcement = getConfig().getBoolean("config.start_announcement");
 		winner_announcement = getConfig().getBoolean("config.winner_announcement");
+		bling_sounds = getConfig().getBoolean("config.bling_sounds");
 		
 		saved_arena = getConfig().getString("strings.saved.arena").replaceAll("&", "§");
 		saved_lobby = getConfig().getString("strings.saved.lobby").replaceAll("&", "§");
@@ -1346,7 +1349,7 @@ public class Main extends JavaPlugin implements Listener {
 			public void run() {
 				try {
 					a_round.put(arena, a_round.get(arena) + 1);
-					int n = a_n.get(arena);
+					final int n = a_n.get(arena);
 					if (a_round.get(arena) > rounds_per_game) {
 						a_round.put(arena, 0);
 						stop(h.get(arena), arena);
@@ -1383,8 +1386,15 @@ public class Main extends JavaPlugin implements Listener {
 										int xpsec = xpsecp.get(p);
 										p.setExp(1 - (0.083F * xpsec));
 										xpsecp.put(p, xpsec + 1);
-										//TODO add that maybe?
-										//p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 0);
+										if(bling_sounds){
+											if(xpsec == 8){
+												p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 0);
+											}else if(xpsec == 10){
+												p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 0);
+											}else if(xpsec == 12){
+												p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 0);
+											}	
+										}
 									}
 								}, (80L - (d * 20) - n) / 12, (80L - (d * 20) - n) / 12));
 
