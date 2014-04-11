@@ -1907,7 +1907,7 @@ public class Main extends JavaPlugin implements Listener {
 	
 	
 	public boolean isArenax32GlassMode(String arena){
-		if(getConfig().isSet(arena + ".x32claymode")){
+		if(getConfig().isSet(arena + ".x32glassmode")){
 			return getConfig().getBoolean(arena + ".x32glassmode");
 		}
 		return false;
