@@ -54,6 +54,11 @@ import org.bukkit.scoreboard.ScoreboardManager;
 
 import com.comze_instancelabs.colormatch.Util.Metrics;
 import com.comze_instancelabs.colormatch.Util.Updater;
+import com.comze_instancelabs.colormatch.modes.ColorMatchClayMode;
+import com.comze_instancelabs.colormatch.modes.ColorMatchGlassMode;
+import com.comze_instancelabs.colormatch.modes.ColorMatchx32;
+import com.comze_instancelabs.colormatch.modes.ColorMatchx32Clay;
+import com.comze_instancelabs.colormatch.modes.ColorMatchx32Glass;
 import com.google.common.collect.Maps;
 
 public class Main extends JavaPlugin implements Listener {
@@ -1226,9 +1231,9 @@ public class Main extends JavaPlugin implements Listener {
 
 	final Main m = this;
 
-	static ArrayList<Integer> ints = new ArrayList<Integer>();
-	static ArrayList<DyeColor> colors = new ArrayList<DyeColor>(Arrays.asList(DyeColor.BLUE, DyeColor.RED, DyeColor.CYAN, DyeColor.BLACK, DyeColor.GREEN, DyeColor.YELLOW, DyeColor.ORANGE, DyeColor.PURPLE));
-	static Random r = new Random();
+	public static ArrayList<Integer> ints = new ArrayList<Integer>();
+	public static ArrayList<DyeColor> colors = new ArrayList<DyeColor>(Arrays.asList(DyeColor.BLUE, DyeColor.RED, DyeColor.CYAN, DyeColor.BLACK, DyeColor.GREEN, DyeColor.YELLOW, DyeColor.ORANGE, DyeColor.PURPLE));
+	public static Random r = new Random();
 
 	final public HashMap<String, BukkitTask> h = new HashMap<String, BukkitTask>();
 	final public HashMap<String, Integer> countdown_count = new HashMap<String, Integer>();
