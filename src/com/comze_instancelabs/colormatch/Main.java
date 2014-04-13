@@ -81,6 +81,7 @@ public class Main extends JavaPlugin implements Listener {
 	public static HashMap<Player, String> arenap = new HashMap<Player, String>(); // player -> arena
 	public static HashMap<String, String> arenap_ = new HashMap<String, String>(); // player -> arena
 	public static HashMap<Player, ItemStack[]> pinv = new HashMap<Player, ItemStack[]>(); // player -> inventory
+	public static HashMap<Player, GameMode> pgamemode = new HashMap<Player, GameMode>(); // player -> gamemode
 	public static HashMap<Player, String> lost = new HashMap<Player, String>(); // player -> whether lost or not
 	public static HashMap<Player, Integer> xpsecp = new HashMap<Player, Integer>();
 	public static HashMap<String, Integer> a_round = new HashMap<String, Integer>();
@@ -967,6 +968,9 @@ public class Main extends JavaPlugin implements Listener {
 					if (p.isOnline()) {
 						p.setAllowFlight(false);
 						p.setFlying(false);
+						if(pgamemode.get(p) == GameMode.CREATIVE){
+							p.setAllowFlight(true);
+						}
 					}
 				}
 			}, 10);
@@ -999,6 +1003,7 @@ public class Main extends JavaPlugin implements Listener {
 			if (p.isOnline()) {
 				p.getInventory().setContents(pinv.get(p));
 				p.updateInventory();
+				p.setGameMode(pgamemode.get(p));
 			}
 
 			if (winner.containsKey(p)) {
@@ -1056,6 +1061,7 @@ public class Main extends JavaPlugin implements Listener {
 		
 		// continue
 		arenap.put(p, arena);
+		pgamemode.put(p, p.getGameMode());
 		p.setGameMode(GameMode.SURVIVAL);
 		pinv.put(p, p.getInventory().getContents());
 		p.getInventory().clear();
