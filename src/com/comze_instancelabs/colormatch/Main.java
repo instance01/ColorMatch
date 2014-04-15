@@ -11,6 +11,7 @@ import java.util.Random;
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
@@ -959,6 +960,10 @@ public class Main extends JavaPlugin implements Listener {
 				lost.remove(p);
 			}
 			
+			if(pclass.containsKey(p.getName())){
+				pclass.remove(p.getName());
+			}
+			
 			if(pseenfall.containsKey(p.getName())){
 				pseenfall.remove(p.getName());
 			}
@@ -1030,10 +1035,10 @@ public class Main extends JavaPlugin implements Listener {
 				}
 			}
 
-			if (hmmthisbug && count > 0) {
+			/*if (hmmthisbug && count > 0) {
 				getLogger().info("Sorry, I could not fix the game. Stopping now.");
 				stop(h.get(arena), arena);
-			}
+			}*/
 
 			if (count < 2) {
 				if (flag) {
@@ -1405,12 +1410,19 @@ public class Main extends JavaPlugin implements Listener {
 								}, (80L - (d * 20) - n) / 12, (80L - (d * 20) - n) / 12));
 
 								DyeColor dc = colors.get(currentw);
-								ItemStack wool = new ItemStack(Material.WOOL, 1, dc.getData());
-								ItemMeta m = wool.getItemMeta();
+								ItemStack item;
+								if(isArenaClayMode(arena) || isArenax32ClayMode(arena)){
+									item = new ItemStack(Material.STAINED_CLAY, 1, dc.getData());
+								}else if(isArenaGlassMode(arena) || isArenax32GlassMode(arena)){
+									item = new ItemStack(Material.STAINED_GLASS, 1, dc.getData());
+								}else{
+									item = new ItemStack(Material.WOOL, 1, dc.getData());
+								}
+								ItemMeta m = item.getItemMeta();
 								m.setDisplayName(dyeToChat(dc) + "" + ChatColor.BOLD + dc.name());
-								wool.setItemMeta(m);
+								item.setItemMeta(m);
 								for (int i = 0; i < 9; i++) {
-									p.getInventory().setItem(i, wool);
+									p.getInventory().setItem(i, item);
 								}
 								// p.getInventory().all(wool);
 								p.updateInventory();
@@ -1934,7 +1946,9 @@ public class Main extends JavaPlugin implements Listener {
 		getServer().getPlayer(player).getInventory().clear();
 		getServer().getPlayer(player).getInventory().setArmorContents(null);
 		getServer().getPlayer(player).updateInventory();
-		getServer().getPlayer(player).addPotionEffect(c.potioneffect);
+		for(PotionEffect pot : c.potioneffect){
+			getServer().getPlayer(player).addPotionEffect(pot);
+		}
 		getServer().getPlayer(player).updateInventory();
 	}
 	
@@ -1945,13 +1959,26 @@ public class Main extends JavaPlugin implements Listener {
 	public void loadClasses(){
 		if(getConfig().isSet("config.kits")){
 			for(String aclass : getConfig().getConfigurationSection("config.kits.").getKeys(false)){
-				AClass n = new AClass(this, aclass, new PotionEffect(PotionEffectType.getByName(getConfig().getString("config.kits." + aclass + ".potioneffect")), 20 * 64, getConfig().getInt("config.kits." + aclass + ".amplifier")));
+				AClass n = new AClass(this, aclass, this.parsePotionEffects(getConfig().getString("config.kits." + aclass + ".potioneffect"), aclass));
 				aclasses.put(aclass, n);
 				if(!getConfig().isSet("config.kits." + aclass + ".potioneffect") || !getConfig().isSet("config.kits." + aclass + ".lore")){
 					getLogger().warning("One of the classes found in the config file is invalid: " + aclass + ". Missing itemid or lore!");
 				}
 			}
 		}
+	}
+	
+	
+	public PotionEffect[] parsePotionEffects(String str, String aclass){
+		PotionEffect[] ret = new PotionEffect[StringUtils.countMatches(str, "#") + 1];
+		int count = 0;
+		for(String pot : str.split("#")){
+			if(pot.length() > 1){
+				ret[count] = new PotionEffect(PotionEffectType.getByName(pot), 20 * 64, getConfig().getInt("config.kits." + aclass + ".amplifier"));
+				count++;
+			}
+		}
+		return ret;
 	}
 	
 	

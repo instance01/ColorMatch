@@ -6,9 +6,9 @@ public class AClass {
 
 	private Main m;
 	public String name;
-	public PotionEffect potioneffect;
+	public PotionEffect[] potioneffect;
 	
-	public AClass(Main m, String name, PotionEffect pot){
+	public AClass(Main m, String name, PotionEffect[] pot){
 		this.m = m;
 		this.name = name.replaceAll("&", "§");
 		this.potioneffect = pot;
