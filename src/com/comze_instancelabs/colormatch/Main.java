@@ -586,6 +586,15 @@ public class Main extends JavaPlugin implements Listener {
 										final Player p__ = p_;
 										Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 											public void run() {
+												if(getSpawnForPlayer(arena) == null){
+													System.out.println("Couldn't find the spawn, not teleporting.");
+													for(Player p : Bukkit.getOnlinePlayers()){
+														if(p.isOp()){
+															p.sendMessage(ChatColor.RED + "Couldn't find the spawn for ColorMatch, not teleporting.");
+														}
+													}
+													return;
+												}
 												p__.teleport(getSpawnForPlayer(arena));
 											}
 										}, 5);
