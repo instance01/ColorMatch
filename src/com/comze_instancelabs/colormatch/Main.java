@@ -216,6 +216,39 @@ public class Main extends JavaPlugin implements Listener {
 		
 		loadClasses();
 		
+		// reset arenas that were interrupted by a server stop
+		if(getConfig().isSet("ingamearenas")){
+			ArrayList<String> arenas = new ArrayList<String>(getConfig().getConfigurationSection("ingamearenas.").getKeys(false));
+			for(String arena : arenas){
+				System.out.println("Resetting " + arena);
+				stop(null, arena);
+				getConfig().set("ingamearenas." + arena, null);
+				this.saveConfig();
+			}
+		}
+		if(getConfig().isSet("leftplayers")){
+			ArrayList<String> players = new ArrayList<String>(getConfig().getConfigurationSection("leftplayers.").getKeys(false));
+			for(String p : players){
+				this.left_players.add(p);
+				getConfig().set("leftplayers." + p, null);
+				this.saveConfig();
+			}
+		}
+	}
+	
+	
+	@Override
+	public void onDisable(){
+		// check for any running arenas because some sloppy owner just stops the server without checking stuff
+		for(String arena : ingame.keySet()){
+			if(ingame.get(arena)){
+				getConfig().set("ingamearenas." + arena, true);
+			}
+		}
+		for(Player p : arenap.keySet()){
+			getConfig().set("leftplayers." + p.getName(), true);
+		}
+		this.saveConfig();
 	}
 
 	private boolean setupEconomy() {
@@ -624,7 +657,7 @@ public class Main extends JavaPlugin implements Listener {
 					if (sender.hasPermission("colormatch.list")) {
 						sender.sendMessage("§6-= Arenas =-");
 						for (String arena : getConfig().getKeys(false)) {
-							if (!arena.equalsIgnoreCase("mainlobby") && !arena.equalsIgnoreCase("strings") && !arena.equalsIgnoreCase("config")) {
+							if (!arena.equalsIgnoreCase("mainlobby") && !arena.equalsIgnoreCase("strings") && !arena.equalsIgnoreCase("config") && !arena.equalsIgnoreCase("leftplayers") && !arena.equalsIgnoreCase("ingamearenas")) {
 								sender.sendMessage("§2" + arena);
 							}
 						}
@@ -704,7 +737,7 @@ public class Main extends JavaPlugin implements Listener {
 			int c = 0;
 			final List<String> arenas = new ArrayList<String>();
 			for (String arena : getConfig().getKeys(false)) {
-				if (!arena.equalsIgnoreCase("mainlobby") && !arena.equalsIgnoreCase("strings") && !arena.equalsIgnoreCase("config")) {
+				if (!arena.equalsIgnoreCase("mainlobby") && !arena.equalsIgnoreCase("strings") && !arena.equalsIgnoreCase("config") && !arena.equalsIgnoreCase("leftplayers") && !arena.equalsIgnoreCase("ingamearenas")) {
 					c++;
 					arenas.add(arena);
 				}
