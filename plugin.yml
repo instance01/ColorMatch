@@ -1,6 +1,6 @@
 name: ColorMatch
 main: com.comze_instancelabs.colormatch.Main
-version: 1.7.6
+version: 1.7.7
 author: instancelabs
 softdepend: [Vault]
 commands:

@@ -93,10 +93,10 @@ public class Main extends JavaPlugin implements Listener {
 	public static HashMap<String, Boolean> pseenfall = new HashMap<String, Boolean>();
 
 	int rounds_per_game = 10;
-	//int minplayers = 4;
+	// int minplayers = 4;
 	int default_max_players = 4;
 	int default_min_players = 3;
-	
+
 	boolean economy = true;
 	int reward = 30;
 	int itemid = 264;
@@ -106,7 +106,7 @@ public class Main extends JavaPlugin implements Listener {
 	boolean start_announcement = false;
 	boolean winner_announcement = false;
 	boolean bling_sounds = false;
-	
+
 	int start_countdown = 5;
 
 	public String saved_arena = "";
@@ -126,17 +126,17 @@ public class Main extends JavaPlugin implements Listener {
 	public String arena_full = "";
 	public String removed_arena = "";
 	public String winner_an = "";
-	
+
 	// anouncements
 	public String starting = "";
 	public String started = "";
-	
+
 	public ColorMatchx32Clay cmx32clay;
 	public ColorMatchx32 cmx32;
 	public ColorMatchGlassMode cmglass;
 	public ColorMatchClayMode cmclay;
 	public ColorMatchx32Glass cmx32glass;
-	
+
 	@Override
 	public void onEnable() {
 		getServer().getPluginManager().registerEvents(this, this);
@@ -184,11 +184,11 @@ public class Main extends JavaPlugin implements Listener {
 		getConfig().addDefault("strings.winner_announcement", "&6<player> &awon the game on arena &6<arena>!");
 
 		getConfig().options().copyDefaults(true);
-		if(getConfig().isSet("config.min_players")){
+		if (getConfig().isSet("config.min_players")) {
 			getConfig().set("config.min_players", null);
 		}
 		this.saveConfig();
-		
+
 		getConfigVars();
 
 		cmx32clay = new ColorMatchx32Clay(this);
@@ -196,7 +196,7 @@ public class Main extends JavaPlugin implements Listener {
 		cmglass = new ColorMatchGlassMode(this);
 		cmclay = new ColorMatchClayMode(this);
 		cmx32glass = new ColorMatchx32Glass(this);
-		
+
 		try {
 			Metrics metrics = new Metrics(this);
 			metrics.start();
@@ -213,39 +213,38 @@ public class Main extends JavaPlugin implements Listener {
 				economy = false;
 			}
 		}
-		
+
 		loadClasses();
-		
+
 		// reset arenas that were interrupted by a server stop
-		if(getConfig().isSet("ingamearenas")){
+		if (getConfig().isSet("ingamearenas")) {
 			ArrayList<String> arenas = new ArrayList<String>(getConfig().getConfigurationSection("ingamearenas.").getKeys(false));
-			for(String arena : arenas){
+			for (String arena : arenas) {
 				System.out.println("Resetting " + arena);
 				stop(null, arena);
 				getConfig().set("ingamearenas." + arena, null);
 				this.saveConfig();
 			}
 		}
-		if(getConfig().isSet("leftplayers")){
+		if (getConfig().isSet("leftplayers")) {
 			ArrayList<String> players = new ArrayList<String>(getConfig().getConfigurationSection("leftplayers.").getKeys(false));
-			for(String p : players){
+			for (String p : players) {
 				this.left_players.add(p);
 				getConfig().set("leftplayers." + p, null);
 				this.saveConfig();
 			}
 		}
 	}
-	
-	
+
 	@Override
-	public void onDisable(){
+	public void onDisable() {
 		// check for any running arenas because some sloppy owner just stops the server without checking stuff
-		for(String arena : ingame.keySet()){
-			if(ingame.get(arena)){
+		for (String arena : ingame.keySet()) {
+			if (ingame.get(arena)) {
 				getConfig().set("ingamearenas." + arena, true);
 			}
 		}
-		for(Player p : arenap.keySet()){
+		for (Player p : arenap.keySet()) {
 			getConfig().set("leftplayers." + p.getName(), true);
 		}
 		this.saveConfig();
@@ -265,8 +264,8 @@ public class Main extends JavaPlugin implements Listener {
 
 	public void getConfigVars() {
 		rounds_per_game = getConfig().getInt("config.rounds_per_game");
-	    default_max_players = getConfig().getInt("config.default_max_players");
-	    default_min_players = getConfig().getInt("config.default_min_players");
+		default_max_players = getConfig().getInt("config.default_max_players");
+		default_min_players = getConfig().getInt("config.default_min_players");
 		reward = getConfig().getInt("config.money_reward");
 		itemid = getConfig().getInt("config.itemid");
 		itemamount = getConfig().getInt("config.itemamount");
@@ -277,7 +276,7 @@ public class Main extends JavaPlugin implements Listener {
 		start_announcement = getConfig().getBoolean("config.start_announcement");
 		winner_announcement = getConfig().getBoolean("config.winner_announcement");
 		bling_sounds = getConfig().getBoolean("config.bling_sounds");
-		
+
 		saved_arena = getConfig().getString("strings.saved.arena").replaceAll("&", "§");
 		saved_lobby = getConfig().getString("strings.saved.lobby").replaceAll("&", "§");
 		saved_setup = getConfig().getString("strings.saved.setup").replaceAll("&", "§");
@@ -319,37 +318,31 @@ public class Main extends JavaPlugin implements Listener {
 					if (args.length > 1) {
 						if (sender.hasPermission("colormatch.setup")) {
 							String arenaname = args[1];
-							if(isValidArena(arenaname)){
+							if (isValidArena(arenaname)) {
 								sender.sendMessage("§cRemoving " + arenaname + ". This will §6lag §ca little bit.");
-								if(isArenax32(arenaname)){
+								if (isArenax32(arenaname)) {
 									this.removeArenax32(getSpawn(arenaname), this, arenaname);
-								}else{
+								} else {
 									this.removeArena(getSpawn(arenaname), this, arenaname);
 								}
-								try{
+								try {
 									getSignFromArena(arenaname).getBlock().setType(Material.AIR);
-								}catch(Exception e){
-									
+								} catch (Exception e) {
+
 								}
 								getConfig().set(arenaname, null);
 								this.saveConfig();
 								sender.sendMessage(removed_arena);
-							}else{
+							} else {
 								sender.sendMessage(arena_invalid);
 							}
 						}
 					}
 				} /*
-				 * else if (action.equalsIgnoreCase("setspawn")) { if
-				 * (args.length > 1) { Player p = (Player) sender; String
-				 * arenaname = args[1]; getConfig().set(arenaname +
-				 * ".spawn.world", p.getWorld().getName());
-				 * getConfig().set(arenaname + ".spawn.loc.x",
-				 * p.getLocation().getBlockX()); getConfig().set(arenaname +
-				 * ".spawn.loc.y", p.getLocation().getBlockY());
-				 * getConfig().set(arenaname + ".spawn.loc.z",
-				 * p.getLocation().getBlockZ()); this.saveConfig();
-				 * sender.sendMessage("§2Successfully saved spawn."); } }
+				 * else if (action.equalsIgnoreCase("setspawn")) { if (args.length > 1) { Player p = (Player) sender; String arenaname = args[1];
+				 * getConfig().set(arenaname + ".spawn.world", p.getWorld().getName()); getConfig().set(arenaname + ".spawn.loc.x",
+				 * p.getLocation().getBlockX()); getConfig().set(arenaname + ".spawn.loc.y", p.getLocation().getBlockY()); getConfig().set(arenaname +
+				 * ".spawn.loc.z", p.getLocation().getBlockZ()); this.saveConfig(); sender.sendMessage("§2Successfully saved spawn."); } }
 				 */else if (action.equalsIgnoreCase("setlobby")) {
 					if (args.length > 1) {
 						if (sender.hasPermission("colormatch.setup")) {
@@ -488,17 +481,17 @@ public class Main extends JavaPlugin implements Listener {
 						if (args.length > 2) {
 							String arena = args[1];
 							String playercount = args[2];
-							if(!isNumeric(playercount)){
+							if (!isNumeric(playercount)) {
 								playercount = Integer.toString(default_max_players);
 								sender.sendMessage("§cPlayercount is invalid. Setting to default value.");
 							}
-							if(!getConfig().isSet(arena)){
+							if (!getConfig().isSet(arena)) {
 								sender.sendMessage("§cCould not find this arena.");
 								return true;
 							}
 							this.setArenaMaxPlayers(arena, Integer.parseInt(playercount));
 							sender.sendMessage("§eSuccessfully set!");
-						}else{
+						} else {
 							sender.sendMessage("§cUsage: /cm setmaxplayers [arena] [count].");
 						}
 					}
@@ -507,17 +500,17 @@ public class Main extends JavaPlugin implements Listener {
 						if (args.length > 2) {
 							String arena = args[1];
 							String playercount = args[2];
-							if(!isNumeric(playercount)){
+							if (!isNumeric(playercount)) {
 								playercount = Integer.toString(default_min_players);
 								sender.sendMessage("§cPlayercount is invalid. Setting to default value.");
 							}
-							if(!getConfig().isSet(arena)){
+							if (!getConfig().isSet(arena)) {
 								sender.sendMessage("§cCould not find this arena.");
 								return true;
 							}
 							this.setArenaMinPlayers(arena, Integer.parseInt(playercount));
 							sender.sendMessage("§eSuccessfully set!");
-						}else{
+						} else {
 							sender.sendMessage("§cUsage: /cm setminplayers [arena] [count].");
 						}
 					}
@@ -526,17 +519,17 @@ public class Main extends JavaPlugin implements Listener {
 						if (args.length > 2) {
 							String arena = args[1];
 							String difficulty = args[2];
-							if(!isNumeric(difficulty)){
+							if (!isNumeric(difficulty)) {
 								difficulty = "1";
 								sender.sendMessage("§cDifficulty is invalid. Possible difficulties: 0, 1, 2.");
 							}
-							if(!getConfig().isSet(arena)){
+							if (!getConfig().isSet(arena)) {
 								sender.sendMessage("§cCould not find this arena.");
 								return true;
 							}
 							this.setArenaDifficulty(arena, Integer.parseInt(difficulty));
 							sender.sendMessage("§eSuccessfully set!");
-						}else{
+						} else {
 							sender.sendMessage("§cUsage: /cm setdifficulty [arena] [difficulty]. Difficulty can be 0, 1 or 2.");
 						}
 					}
@@ -575,7 +568,7 @@ public class Main extends JavaPlugin implements Listener {
 									count++;
 								}
 							}
-							if(count < 1){
+							if (count < 1) {
 								sender.sendMessage("§cNoone is in this arena.");
 								return true;
 							}
@@ -586,10 +579,10 @@ public class Main extends JavaPlugin implements Listener {
 										final Player p__ = p_;
 										Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 											public void run() {
-												if(getSpawnForPlayer(arena) == null){
+												if (getSpawnForPlayer(arena) == null) {
 													System.out.println("Couldn't find the spawn, not teleporting.");
-													for(Player p : Bukkit.getOnlinePlayers()){
-														if(p.isOp()){
+													for (Player p : Bukkit.getOnlinePlayers()) {
+														if (p.isOp()) {
 															p.sendMessage(ChatColor.RED + "Couldn't find the spawn for ColorMatch, not teleporting.");
 														}
 													}
@@ -616,44 +609,44 @@ public class Main extends JavaPlugin implements Listener {
 								return true;
 							}
 							if (ingame.get(arena)) {
-								if(h.containsKey(arena)){
+								if (h.containsKey(arena)) {
 									stop(h.get(arena), arena);
 								}
 							}
 						}
 					}
-				} else if(action.equalsIgnoreCase("changekit")){
-					Player p = (Player)sender;
-					if(args.length > 1){
-						if(arenap.containsKey(p)){
-							if(aclasses.containsKey(args[1])){
-								if(args[1].equalsIgnoreCase("default")){
+				} else if (action.equalsIgnoreCase("changekit")) {
+					Player p = (Player) sender;
+					if (args.length > 1) {
+						if (arenap.containsKey(p)) {
+							if (aclasses.containsKey(args[1])) {
+								if (args[1].equalsIgnoreCase("default")) {
 									this.setClass(args[1], p.getName());
 									sender.sendMessage("§aKit successfully set!");
 									return true;
 								}
-								if(p.hasPermission("colormatch.kit." + args[1])){
+								if (p.hasPermission("colormatch.kit." + args[1])) {
 									this.setClass(args[1], p.getName());
 									sender.sendMessage("§aKit successfully set!");
 								}
-							}else{
+							} else {
 								String all = "  ";
-								for(String class_ : aclasses.keySet()){
+								for (String class_ : aclasses.keySet()) {
 									all += class_ + ", ";
 								}
 								sender.sendMessage("§cThis is not a valid kit. Possible ones:§3" + all.substring(0, all.length() - 2));
 							}
-						}else{
+						} else {
 							sender.sendMessage("§cYou are not in an arena right now.");
 						}
-					}else{
+					} else {
 						sender.sendMessage("§cUsage: §a/cm changekit [name].");
 					}
 				} else if (action.equalsIgnoreCase("kitgui")) {
-					Player p = (Player)sender;
-					if(arenap.containsKey(p)){
+					Player p = (Player) sender;
+					if (arenap.containsKey(p)) {
 						openGUI(this, p.getName());
-					}else{
+					} else {
 						sender.sendMessage("§cYou are not in an arena right now.");
 					}
 				} else if (action.equalsIgnoreCase("reload")) {
@@ -740,9 +733,8 @@ public class Main extends JavaPlugin implements Listener {
 			}, 5);
 			left_players.remove(event.getPlayer().getName());
 		}
-		
-		
-		if(getConfig().getBoolean("config.game_on_join")){
+
+		if (getConfig().getBoolean("config.game_on_join")) {
 			int c = 0;
 			final List<String> arenas = new ArrayList<String>();
 			for (String arena : getConfig().getKeys(false)) {
@@ -751,13 +743,13 @@ public class Main extends JavaPlugin implements Listener {
 					arenas.add(arena);
 				}
 			}
-			if(c < 1){
+			if (c < 1) {
 				getLogger().severe("Couldn't find any arena even though game_on_join was turned on. Please setup an arena to fix this!");
 				return;
 			}
-			
-			Bukkit.getScheduler().runTaskLater(this, new Runnable(){
-				public void run(){
+
+			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
+				public void run() {
 					joinLobby(p, arenas.get(0));
 				}
 			}, 30L);
@@ -783,16 +775,16 @@ public class Main extends JavaPlugin implements Listener {
 
 	@EventHandler
 	public void onBlockBreak(BlockBreakEvent event) {
-		//if (arenap_.containsKey(event.getPlayer().getName())) {
-		if(arenap.containsKey(event.getPlayer())){
+		// if (arenap_.containsKey(event.getPlayer().getName())) {
+		if (arenap.containsKey(event.getPlayer())) {
 			event.setCancelled(true);
 		}
 	}
 
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) {
-		//if (arenap_.containsKey(event.getPlayer().getName())) {
-		if(arenap.containsKey(event.getPlayer())){
+		// if (arenap_.containsKey(event.getPlayer().getName())) {
+		if (arenap.containsKey(event.getPlayer())) {
 			event.setCancelled(true);
 		}
 	}
@@ -821,10 +813,10 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}
 					}, 5);
-					if(!pseenfall.containsKey(p.getName())){
+					if (!pseenfall.containsKey(p.getName())) {
 						pseenfall.put(p.getName(), false);
 					}
-					if(!pseenfall.get(p.getName())){
+					if (!pseenfall.get(p.getName())) {
 						p.sendMessage(you_fell);
 						pseenfall.put(p.getName(), true);
 					}
@@ -872,9 +864,9 @@ public class Main extends JavaPlugin implements Listener {
 				final Sign s = (Sign) event.getClickedBlock().getState();
 				if (s.getLine(0).toLowerCase().contains("colormatch")) {
 					if (s.getLine(1).equalsIgnoreCase("§2[join]")) {
-						if(isValidArena(s.getLine(2))){
+						if (isValidArena(s.getLine(2))) {
 							joinLobby(event.getPlayer(), s.getLine(2));
-						}else{
+						} else {
 							event.getPlayer().sendMessage(arena_invalid);
 						}
 					}
@@ -910,20 +902,17 @@ public class Main extends JavaPlugin implements Listener {
 		}
 	}
 
-	
 	@EventHandler
-   	public void onPlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent event) {
-       	if(arenap.containsKey(event.getPlayer()) && !event.getPlayer().isOp()){
-       		if(!event.getMessage().startsWith("/cm") && !event.getMessage().startsWith("/colormatch")){
-       			event.getPlayer().sendMessage("§cPlease use §6/cm leave §cto leave this minigame.");
-        		event.setCancelled(true);
-       			return;
-        	}
-       	}
-    }
-	
+	public void onPlayerCommandPreprocessEvent(PlayerCommandPreprocessEvent event) {
+		if (arenap.containsKey(event.getPlayer()) && !event.getPlayer().isOp()) {
+			if (!event.getMessage().startsWith("/cm") && !event.getMessage().startsWith("/colormatch")) {
+				event.getPlayer().sendMessage("§cPlease use §6/cm leave §cto leave this minigame.");
+				event.setCancelled(true);
+				return;
+			}
+		}
+	}
 
-	
 	public Sign getSignFromArena(String arena) {
 		Location b_ = new Location(getServer().getWorld(getConfig().getString(arena + ".sign.world")), getConfig().getInt(arena + ".sign.loc.x"), getConfig().getInt(arena + ".sign.loc.y"), getConfig().getInt(arena + ".sign.loc.z"));
 		BlockState bs = b_.getBlock().getState();
@@ -945,9 +934,9 @@ public class Main extends JavaPlugin implements Listener {
 
 	public Location getMainLobby() {
 		Location ret;
-		if(getConfig().isSet("mainlobby")){
+		if (getConfig().isSet("mainlobby")) {
 			ret = new Location(Bukkit.getWorld(getConfig().getString("mainlobby.world")), getConfig().getInt("mainlobby.loc.x"), getConfig().getInt("mainlobby.loc.y"), getConfig().getInt("mainlobby.loc.z"));
-		}else{
+		} else {
 			ret = null;
 			getLogger().warning("A Mainlobby could not be found. This will lead to errors, please fix this with /cm setmainlobby.");
 		}
@@ -985,28 +974,28 @@ public class Main extends JavaPlugin implements Listener {
 				public void run() {
 					if (p.isOnline()) {
 						p.teleport(getMainLobby());
-						//p.setFlying(false);
-						for(PotionEffect pe : p.getActivePotionEffects()){
-							try{
-								if(p.hasPotionEffect(pe.getType())){
+						// p.setFlying(false);
+						for (PotionEffect pe : p.getActivePotionEffects()) {
+							try {
+								if (p.hasPotionEffect(pe.getType())) {
 									p.removePotionEffect(pe.getType());
 								}
-							}catch(Exception e){	
+							} catch (Exception e) {
 							}
 						}
 					}
 				}
 			}, 5);
 
-			if(lost.containsKey(p)){
+			if (lost.containsKey(p)) {
 				lost.remove(p);
 			}
-			
-			if(pclass.containsKey(p.getName())){
+
+			if (pclass.containsKey(p.getName())) {
 				pclass.remove(p.getName());
 			}
-			
-			if(pseenfall.containsKey(p.getName())){
+
+			if (pseenfall.containsKey(p.getName())) {
 				pseenfall.remove(p.getName());
 			}
 
@@ -1015,22 +1004,21 @@ public class Main extends JavaPlugin implements Listener {
 					if (p.isOnline()) {
 						p.setAllowFlight(false);
 						p.setFlying(false);
-						if(pgamemode.get(p) == GameMode.CREATIVE){
+						if (pgamemode.get(p) == GameMode.CREATIVE) {
 							p.setAllowFlight(true);
 						}
 					}
 				}
 			}, 10);
-			
-			/*if (p.isOnline()) {
-				p.setAllowFlight(false);
-				p.setFlying(false);
-			}*/
-			
+
+			/*
+			 * if (p.isOnline()) { p.setAllowFlight(false); p.setFlying(false); }
+			 */
+
 			final String arena = arenap.get(p);
 
 			removeScoreboard(arena, p);
-			
+
 			if (flag) {
 				if (arenap.containsKey(p)) {
 					arenap.remove(p);
@@ -1044,7 +1032,7 @@ public class Main extends JavaPlugin implements Listener {
 			}
 
 			updateScoreboard(arena);
-			
+
 			removeScoreboard(arena, p);
 
 			if (p.isOnline()) {
@@ -1077,10 +1065,9 @@ public class Main extends JavaPlugin implements Listener {
 				}
 			}
 
-			/*if (hmmthisbug && count > 0) {
-				getLogger().info("Sorry, I could not fix the game. Stopping now.");
-				stop(h.get(arena), arena);
-			}*/
+			/*
+			 * if (hmmthisbug && count > 0) { getLogger().info("Sorry, I could not fix the game. Stopping now."); stop(h.get(arena), arena); }
+			 */
 
 			if (count < 2) {
 				if (flag) {
@@ -1105,7 +1092,7 @@ public class Main extends JavaPlugin implements Listener {
 			p.sendMessage(arena_full);
 			return;
 		}
-		
+
 		// continue
 		arenap.put(p, arena);
 		pgamemode.put(p, p.getGameMode());
@@ -1148,11 +1135,11 @@ public class Main extends JavaPlugin implements Listener {
 				}
 			}, 10);
 		}
-		
+
 		if (!ingame.containsKey(arena)) {
 			ingame.put(arena, false);
 		}
-		if(ingame.get(arena)){
+		if (ingame.get(arena)) {
 			Bukkit.getScheduler().runTaskLater(this, new Runnable() {
 				public void run() {
 					p.teleport(getSpawnForPlayer(arena));
@@ -1174,16 +1161,13 @@ public class Main extends JavaPlugin implements Listener {
 
 	}
 
-	
-	
 	// Arena removal
-	
+
 	public static void removeArena(Location start, Main main, String name_) {
 		int x = start.getBlockX() - 32;
 		int y = start.getBlockY();
 		int y_ = start.getBlockY() - 4;
 		int z = start.getBlockZ() - 32;
-
 
 		for (int i = 0; i < 16; i++) {
 			for (int j = 0; j < 16; j++) {
@@ -1202,13 +1186,11 @@ public class Main extends JavaPlugin implements Listener {
 		}
 	}
 
-	
 	public static void removeArenax32(Location start, Main main, String name_) {
 		int x = start.getBlockX() - 16;
 		int y = start.getBlockY();
 		int y_ = start.getBlockY() - 4;
 		int z = start.getBlockZ() - 16;
-
 
 		for (int i = 0; i < 8; i++) {
 			for (int j = 0; j < 8; j++) {
@@ -1227,10 +1209,6 @@ public class Main extends JavaPlugin implements Listener {
 		}
 	}
 
-	
-	
-	
-	
 	// COPIED FROM MINIGAMES PARTY
 	public static void setup(Location start, Main main, String name_) {
 		int x = start.getBlockX() - 32;
@@ -1246,28 +1224,29 @@ public class Main extends JavaPlugin implements Listener {
 				int z_ = z + j * 4;
 
 				int newcurrent = r.nextInt(colors.size());
-				if(current == newcurrent){
-					//newcurrent = r.nextInt(colors.size());
-					if(newcurrent > 0){
+				if (current == newcurrent) {
+					// newcurrent = r.nextInt(colors.size());
+					if (newcurrent > 0) {
 						newcurrent -= 1;
-					}else{
+					} else {
 						newcurrent += 2;
 					}
 				}
-				
-				if(ints.size() > 15){
-					//Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x_, y, z_));
-					//Bukkit.getLogger().info(Integer.toString(b.getLocation().getBlockX()) + " " + Integer.toString(b.getLocation().getBlockZ()) + " . " + Integer.toString(colors.get(newcurrent).getData()) + " " + Integer.toString(ints.get(ints.size() - 16)));
-					
-					if(ints.get(ints.size() - 16) == colors.get(newcurrent).getData()){
-						if(newcurrent > 0){
+
+				if (ints.size() > 15) {
+					// Block b = start.getWorld().getBlockAt(new Location(start.getWorld(), x_, y, z_));
+					// Bukkit.getLogger().info(Integer.toString(b.getLocation().getBlockX()) + " " + Integer.toString(b.getLocation().getBlockZ()) +
+					// " . " + Integer.toString(colors.get(newcurrent).getData()) + " " + Integer.toString(ints.get(ints.size() - 16)));
+
+					if (ints.get(ints.size() - 16) == colors.get(newcurrent).getData()) {
+						if (newcurrent > 0) {
 							newcurrent -= 1;
-						}else{
+						} else {
 							newcurrent += 2;
 						}
 					}
 				}
-				
+
 				current = newcurrent;
 				// ints.add(current);
 				ints.add((int) colors.get(current).getData());
@@ -1304,33 +1283,33 @@ public class Main extends JavaPlugin implements Listener {
 		a_currentw.put(arena, 0);
 
 		// setup ints arraylist
-		if(isArenax32(arena)){
+		if (isArenax32(arena)) {
 			cmx32.getAll(getSpawn(arena));
-		}else if(isArenax32ClayMode(arena)){
+		} else if (isArenax32ClayMode(arena)) {
 			cmx32clay.getAll(getSpawn(arena));
-		}else if(isArenax32GlassMode(arena)){
+		} else if (isArenax32GlassMode(arena)) {
 			cmx32glass.getAll(getSpawn(arena));
-		}else if(isArenaGlassMode(arena)){
+		} else if (isArenaGlassMode(arena)) {
 			cmglass.getAll(getSpawn(arena));
-		}else if(isArenaClayMode(arena)){
+		} else if (isArenaClayMode(arena)) {
 			cmclay.getAll(getSpawn(arena));
-		}else{
+		} else {
 			getAll(getSpawn(arena));
 		}
 
 		// start countdown timer
-		if(start_announcement){
+		if (start_announcement) {
 			Bukkit.getServer().broadcastMessage(starting + " " + Integer.toString(start_countdown));
 		}
-		
-		Bukkit.getServer().getScheduler().runTaskLater(this, new Runnable(){
-			public void run(){
+
+		Bukkit.getServer().getScheduler().runTaskLater(this, new Runnable() {
+			public void run() {
 				// clear hostile mobs on start:
-				for(Player p : arenap.keySet()){
-        			p.playSound(p.getLocation(), Sound.CAT_MEOW, 1, 0);
-					if(arenap.get(p).equalsIgnoreCase(arena)){
-						for(Entity t : p.getNearbyEntities(64, 64, 64)){
-							if(t.getType() == EntityType.ZOMBIE || t.getType() == EntityType.SKELETON || t.getType() == EntityType.CREEPER || t.getType() == EntityType.CAVE_SPIDER || t.getType() == EntityType.SPIDER || t.getType() == EntityType.WITCH || t.getType() == EntityType.GIANT){
+				for (Player p : arenap.keySet()) {
+					p.playSound(p.getLocation(), Sound.CAT_MEOW, 1, 0);
+					if (arenap.get(p).equalsIgnoreCase(arena)) {
+						for (Entity t : p.getNearbyEntities(64, 64, 64)) {
+							if (t.getType() == EntityType.ZOMBIE || t.getType() == EntityType.SKELETON || t.getType() == EntityType.CREEPER || t.getType() == EntityType.CAVE_SPIDER || t.getType() == EntityType.SPIDER || t.getType() == EntityType.WITCH || t.getType() == EntityType.GIANT) {
 								t.remove();
 							}
 						}
@@ -1339,8 +1318,7 @@ public class Main extends JavaPlugin implements Listener {
 				}
 			}
 		}, 20L);
-		
-		
+
 		int t = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
 			public void run() {
 				if (!countdown_count.containsKey(arena)) {
@@ -1356,14 +1334,14 @@ public class Main extends JavaPlugin implements Listener {
 				countdown_count.put(arena, count);
 				if (count < 0) {
 					countdown_count.put(arena, start_countdown);
-					
-					if(start_announcement){
+
+					if (start_announcement) {
 						Bukkit.getServer().broadcastMessage(started);
 					}
-					
+
 					// update sign
-					Bukkit.getServer().getScheduler().runTask(m, new Runnable(){
-						public void run(){
+					Bukkit.getServer().getScheduler().runTask(m, new Runnable() {
+						public void run() {
 							Sign s = getSignFromArena(arena);
 							if (s != null) {
 								s.setLine(1, "§4[Ingame]");
@@ -1371,17 +1349,17 @@ public class Main extends JavaPlugin implements Listener {
 							}
 						}
 					});
-					
+
 					for (Player p : arenap.keySet()) {
 						if (arenap.get(p).equalsIgnoreCase(arena)) {
-							if(pclass.containsKey(p.getName())){
+							if (pclass.containsKey(p.getName())) {
 								m.getClass(p.getName());
-							}else{
-								//setClass("default", p.getName());
+							} else {
+								// setClass("default", p.getName());
 							}
 						}
 					}
-					
+
 					Bukkit.getServer().getScheduler().cancelTask(countdown_id.get(arena));
 				}
 			}
@@ -1389,13 +1367,13 @@ public class Main extends JavaPlugin implements Listener {
 		countdown_id.put(arena, t);
 
 		int difficulty = this.getArenaDifficulty(arena);
-		if(difficulty > 3 || difficulty < 0){
+		if (difficulty > 3 || difficulty < 0) {
 			this.setArenaDifficulty(arena, 1);
 			difficulty = 1;
 		}
-		
+
 		final int d = difficulty;
-		
+
 		BukkitTask id__ = null;
 		id__ = Bukkit.getServer().getScheduler().runTaskTimerAsynchronously(m, new Runnable() {
 			@Override
@@ -1439,25 +1417,25 @@ public class Main extends JavaPlugin implements Listener {
 										int xpsec = xpsecp.get(p);
 										p.setExp(1 - (0.083F * xpsec));
 										xpsecp.put(p, xpsec + 1);
-										if(bling_sounds){
-											if(xpsec == 8){
+										if (bling_sounds) {
+											if (xpsec == 8) {
 												p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 0);
-											}else if(xpsec == 10){
+											} else if (xpsec == 10) {
 												p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 0);
-											}else if(xpsec == 12){
+											} else if (xpsec == 12) {
 												p.playSound(p.getLocation(), Sound.ORB_PICKUP, 1, 0);
-											}	
+											}
 										}
 									}
 								}, (80L - (d * 20) - n) / 12, (80L - (d * 20) - n) / 12));
 
 								DyeColor dc = colors.get(currentw);
 								ItemStack item;
-								if(isArenaClayMode(arena) || isArenax32ClayMode(arena)){
+								if (isArenaClayMode(arena) || isArenax32ClayMode(arena)) {
 									item = new ItemStack(Material.STAINED_CLAY, 1, dc.getData());
-								}else if(isArenaGlassMode(arena) || isArenax32GlassMode(arena)){
+								} else if (isArenaGlassMode(arena) || isArenax32GlassMode(arena)) {
 									item = new ItemStack(Material.STAINED_GLASS, 1, dc.getData());
-								}else{
+								} else {
 									item = new ItemStack(Material.WOOL, 1, dc.getData());
 								}
 								ItemMeta m = item.getItemMeta();
@@ -1476,17 +1454,17 @@ public class Main extends JavaPlugin implements Listener {
 						// Bukkit.getServer().getScheduler().runTaskLaterAsynchronously(m,
 						// new Runnable(){
 						public void run() {
-							if(isArenax32(arena)){
+							if (isArenax32(arena)) {
 								cmx32.removeAllExceptOne(getSpawn(arena), arena);
-							}else if(isArenax32ClayMode(arena)){
+							} else if (isArenax32ClayMode(arena)) {
 								cmx32clay.removeAllExceptOne(getSpawn(arena), arena);
-							}else if(isArenax32GlassMode(arena)){
+							} else if (isArenax32GlassMode(arena)) {
 								cmx32glass.removeAllExceptOne(getSpawn(arena), arena);
-							}else if(isArenaGlassMode(arena)){
+							} else if (isArenaGlassMode(arena)) {
 								cmglass.removeAllExceptOne(getSpawn(arena), arena);
-							}else if(isArenaClayMode(arena)){
+							} else if (isArenaClayMode(arena)) {
 								cmclay.removeAllExceptOne(getSpawn(arena), arena);
-							}else{
+							} else {
 								removeAllExceptOne(getSpawn(arena), arena);
 							}
 							for (BukkitTask t : tasks) {
@@ -1508,17 +1486,17 @@ public class Main extends JavaPlugin implements Listener {
 					BukkitTask id = Bukkit.getServer().getScheduler().runTaskLater(m, new Runnable() {
 						@Override
 						public void run() {
-							if(isArenax32(arena)){
+							if (isArenax32(arena)) {
 								cmx32.reset(getSpawn(arena));
-							}else if(isArenax32ClayMode(arena)){
+							} else if (isArenax32ClayMode(arena)) {
 								cmx32clay.reset(getSpawn(arena));
-							}else if(isArenax32GlassMode(arena)){
+							} else if (isArenax32GlassMode(arena)) {
 								cmx32glass.reset(getSpawn(arena));
-							}else if(isArenaGlassMode(arena)){
+							} else if (isArenaGlassMode(arena)) {
 								cmglass.reset(getSpawn(arena));
-							}else if(isArenaClayMode(arena)){
+							} else if (isArenaClayMode(arena)) {
 								cmclay.reset(getSpawn(arena));
-							}else{
+							} else {
 								reset(getSpawn(arena));
 							}
 						}
@@ -1661,8 +1639,8 @@ public class Main extends JavaPlugin implements Listener {
 				} catch (Exception e) {
 				}
 
-				//removeScoreboard(arena);
-				
+				// removeScoreboard(arena);
+
 				ArrayList<Player> torem = new ArrayList<Player>();
 				determineWinners(arena);
 				for (Player p : arenap.keySet()) {
@@ -1671,7 +1649,7 @@ public class Main extends JavaPlugin implements Listener {
 						torem.add(p);
 					}
 				}
-				
+
 				for (Player p : arenap.keySet()) {
 					if (arenap.get(p).equalsIgnoreCase(arena)) {
 						removeScoreboard(arena, p);
@@ -1702,17 +1680,17 @@ public class Main extends JavaPlugin implements Listener {
 				a_n.put(arena, 0);
 				a_currentw.put(arena, 0);
 
-				if(isArenax32(arena)){
+				if (isArenax32(arena)) {
 					cmx32.reset(getSpawn(arena));
-				}else if(isArenax32ClayMode(arena)){
+				} else if (isArenax32ClayMode(arena)) {
 					cmx32clay.reset(getSpawn(arena));
-				}else if(isArenax32GlassMode(arena)){
+				} else if (isArenax32GlassMode(arena)) {
 					cmx32glass.reset(getSpawn(arena));
-				}else if(isArenaGlassMode(arena)){
+				} else if (isArenaGlassMode(arena)) {
 					cmglass.reset(getSpawn(arena));
-				}else if(isArenaClayMode(arena)){
+				} else if (isArenaClayMode(arena)) {
 					cmclay.reset(getSpawn(arena));
-				}else{
+				} else {
 					reset(getSpawn(arena));
 				}
 
@@ -1738,11 +1716,11 @@ public class Main extends JavaPlugin implements Listener {
 				if (!lost.containsKey(p)) {
 					// this player is a winner
 					p.sendMessage(you_won);
-					
-					if(winner_announcement){
+
+					if (winner_announcement) {
 						getServer().broadcastMessage(winner_an.replaceAll("<player>", p.getName()).replaceAll("<arena>", arena));
 					}
-					
+
 					winner.put(p, true);
 				} else {
 					lost.remove(p);
@@ -1808,12 +1786,16 @@ public class Main extends JavaPlugin implements Listener {
 
 						objective.setDisplayName("§cC§3o§dl§5o§6r§1M§aa§2t§4c§eh!"); // <- ColorMatch
 
-						objective.getScore(Bukkit.getOfflinePlayer(" §8-  ")).setScore(5);
-						objective.getScore(Bukkit.getOfflinePlayer("§aArena")).setScore(4);
-						objective.getScore(Bukkit.getOfflinePlayer("§d" + arena)).setScore(3);
-						objective.getScore(Bukkit.getOfflinePlayer(" §8- ")).setScore(2);
-						objective.getScore(Bukkit.getOfflinePlayer("§aPlayers Left")).setScore(1);
-						objective.getScore(Bukkit.getOfflinePlayer(Integer.toString(count - lostcount) + "/" + Integer.toString(count))).setScore(0);
+						try {
+							objective.getScore(Bukkit.getOfflinePlayer(" §8-  ")).setScore(5);
+							objective.getScore(Bukkit.getOfflinePlayer("§aArena")).setScore(4);
+							objective.getScore(Bukkit.getOfflinePlayer("§d" + arena)).setScore(3);
+							objective.getScore(Bukkit.getOfflinePlayer(" §8- ")).setScore(2);
+							objective.getScore(Bukkit.getOfflinePlayer("§aPlayers Left")).setScore(1);
+							objective.getScore(Bukkit.getOfflinePlayer(Integer.toString(count - lostcount) + "/" + Integer.toString(count))).setScore(0);
+						} catch (Exception e) {
+							//
+						}
 
 						p.setScoreboard(board);
 					}
@@ -1828,11 +1810,11 @@ public class Main extends JavaPlugin implements Listener {
 		try {
 			ScoreboardManager manager = Bukkit.getScoreboardManager();
 			Scoreboard sc = manager.getNewScoreboard();
-			
+
 			sc.clearSlot(DisplaySlot.SIDEBAR);
-			
+
 			getLogger().info("Removing scoreboard.");
-			
+
 			for (Player p : Bukkit.getOnlinePlayers()) {
 				p.setScoreboard(sc);
 				if (arenap.containsKey(p)) {
@@ -1847,12 +1829,12 @@ public class Main extends JavaPlugin implements Listener {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public void removeScoreboard(String arena, Player p) {
 		try {
 			ScoreboardManager manager = Bukkit.getScoreboardManager();
 			Scoreboard sc = manager.getNewScoreboard();
-			
+
 			sc.clearSlot(DisplaySlot.SIDEBAR);
 			p.setScoreboard(sc);
 		} catch (Exception e) {
@@ -1861,193 +1843,184 @@ public class Main extends JavaPlugin implements Listener {
 	}
 
 	public int getArenaDifficulty(String arena) {
-		if(!getConfig().isSet(arena + ".difficulty")){
+		if (!getConfig().isSet(arena + ".difficulty")) {
 			setArenaDifficulty(arena, 1);
 		}
 		return getConfig().getInt(arena + ".difficulty");
 	}
-	
+
 	public void setArenaDifficulty(String arena, int difficulty) {
 		getConfig().set(arena + ".difficulty", difficulty);
 		this.saveConfig();
 	}
 
-	
 	public int getArenaMaxPlayers(String arena) {
-		if(!getConfig().isSet(arena + ".max_players")){
+		if (!getConfig().isSet(arena + ".max_players")) {
 			setArenaMaxPlayers(arena, default_max_players);
 		}
 		return getConfig().getInt(arena + ".max_players");
 	}
-	
+
 	public void setArenaMaxPlayers(String arena, int players) {
 		getConfig().set(arena + ".max_players", players);
 		this.saveConfig();
 	}
-	
+
 	public int getArenaMinPlayers(String arena) {
-		if(!getConfig().isSet(arena + ".min_players")){
+		if (!getConfig().isSet(arena + ".min_players")) {
 			setArenaMinPlayers(arena, default_min_players);
 		}
 		return getConfig().getInt(arena + ".min_players");
 	}
-	
+
 	public void setArenaMinPlayers(String arena, int players) {
 		getConfig().set(arena + ".min_players", players);
 		this.saveConfig();
 	}
-	
-	
-	public boolean isNumeric(String s) {  
-	    return s.matches("[-+]?\\d*\\.?\\d+");  
+
+	public boolean isNumeric(String s) {
+		return s.matches("[-+]?\\d*\\.?\\d+");
 	}
-	
-	
-	public boolean isArenax32(String arena){
-		if(getConfig().isSet(arena + ".x32")){
+
+	public boolean isArenax32(String arena) {
+		if (getConfig().isSet(arena + ".x32")) {
 			return getConfig().getBoolean(arena + ".x32");
 		}
 		return false;
 	}
-	
-	public void setArenax32(String arena){
+
+	public void setArenax32(String arena) {
 		getConfig().set(arena + ".x32", true);
 		this.saveConfig();
 	}
-	
-	public boolean isArenaGlassMode(String arena){
-		if(getConfig().isSet(arena + ".glassmode")){
+
+	public boolean isArenaGlassMode(String arena) {
+		if (getConfig().isSet(arena + ".glassmode")) {
 			return getConfig().getBoolean(arena + ".glassmode");
 		}
 		return false;
 	}
-	
-	public void setArenaGlassMode(String arena, boolean f){
-		if(f){
+
+	public void setArenaGlassMode(String arena, boolean f) {
+		if (f) {
 			getConfig().set(arena + ".glassmode", true);
-		}else{
+		} else {
 			getConfig().set(arena + ".glassmode", null);
 		}
 		this.saveConfig();
 	}
-	
-	
-	public boolean isArenaClayMode(String arena){
-		if(getConfig().isSet(arena + ".claymode")){
+
+	public boolean isArenaClayMode(String arena) {
+		if (getConfig().isSet(arena + ".claymode")) {
 			return getConfig().getBoolean(arena + ".claymode");
 		}
 		return false;
 	}
-	
-	public void setArenaClayMode(String arena, boolean f){
-		if(f){
+
+	public void setArenaClayMode(String arena, boolean f) {
+		if (f) {
 			getConfig().set(arena + ".claymode", true);
-		}else{
+		} else {
 			getConfig().set(arena + ".claymode", null);
 		}
 		this.saveConfig();
 	}
-	
-	
-	public boolean isArenax32ClayMode(String arena){
-		if(getConfig().isSet(arena + ".x32claymode")){
+
+	public boolean isArenax32ClayMode(String arena) {
+		if (getConfig().isSet(arena + ".x32claymode")) {
 			return getConfig().getBoolean(arena + ".x32claymode");
 		}
 		return false;
 	}
-	
-	public void setArenax32ClayMode(String arena, boolean f){
-		if(f){
+
+	public void setArenax32ClayMode(String arena, boolean f) {
+		if (f) {
 			getConfig().set(arena + ".x32claymode", true);
-		}else{
+		} else {
 			getConfig().set(arena + ".x32claymode", null);
 		}
 		this.saveConfig();
 	}
-	
-	
-	public boolean isArenax32GlassMode(String arena){
-		if(getConfig().isSet(arena + ".x32glassmode")){
+
+	public boolean isArenax32GlassMode(String arena) {
+		if (getConfig().isSet(arena + ".x32glassmode")) {
 			return getConfig().getBoolean(arena + ".x32glassmode");
 		}
 		return false;
 	}
-	
-	public void setArenax32GlassMode(String arena, boolean f){
-		if(f){
+
+	public void setArenax32GlassMode(String arena, boolean f) {
+		if (f) {
 			getConfig().set(arena + ".x32glassmode", true);
-		}else{
+		} else {
 			getConfig().set(arena + ".x32glassmode", null);
 		}
 		this.saveConfig();
 	}
 
-	
-	public void getClass(String player){
+	public void getClass(String player) {
 		AClass c = pclass.get(player);
 		getServer().getPlayer(player).getInventory().clear();
 		getServer().getPlayer(player).getInventory().setArmorContents(null);
 		getServer().getPlayer(player).updateInventory();
-		for(PotionEffect pot : c.potioneffect){
+		for (PotionEffect pot : c.potioneffect) {
 			getServer().getPlayer(player).addPotionEffect(pot);
 		}
 		getServer().getPlayer(player).updateInventory();
 	}
-	
-	public void setClass(String classname, String player){
+
+	public void setClass(String classname, String player) {
 		pclass.put(player, aclasses.get(classname));
 	}
-	
-	public void loadClasses(){
-		if(getConfig().isSet("config.kits")){
-			for(String aclass : getConfig().getConfigurationSection("config.kits.").getKeys(false)){
+
+	public void loadClasses() {
+		if (getConfig().isSet("config.kits")) {
+			for (String aclass : getConfig().getConfigurationSection("config.kits.").getKeys(false)) {
 				AClass n = new AClass(this, aclass, this.parsePotionEffects(getConfig().getString("config.kits." + aclass + ".potioneffect"), aclass));
 				aclasses.put(aclass, n);
-				if(!getConfig().isSet("config.kits." + aclass + ".potioneffect") || !getConfig().isSet("config.kits." + aclass + ".lore")){
+				if (!getConfig().isSet("config.kits." + aclass + ".potioneffect") || !getConfig().isSet("config.kits." + aclass + ".lore")) {
 					getLogger().warning("One of the classes found in the config file is invalid: " + aclass + ". Missing itemid or lore!");
 				}
 			}
 		}
 	}
-	
-	
-	public PotionEffect[] parsePotionEffects(String str, String aclass){
+
+	public PotionEffect[] parsePotionEffects(String str, String aclass) {
 		PotionEffect[] ret = new PotionEffect[StringUtils.countMatches(str, "#") + 1];
 		int count = 0;
-		for(String pot : str.split("#")){
-			if(pot.length() > 1){
+		for (String pot : str.split("#")) {
+			if (pot.length() > 1) {
 				ret[count] = new PotionEffect(PotionEffectType.getByName(pot), 20 * 64, getConfig().getInt("config.kits." + aclass + ".amplifier"));
 				count++;
 			}
 		}
 		return ret;
 	}
-	
-	
+
 	public void openGUI(final Main m, String p) {
 		IconMenu iconm = new IconMenu("Kits", 18, new IconMenu.OptionClickEventHandler() {
 			@Override
 			public void onOptionClick(IconMenu.OptionClickEvent event) {
 				String d = event.getName();
 				Player p = event.getPlayer();
-				if(aclasses.containsKey(d)){
+				if (aclasses.containsKey(d)) {
 					m.setClass(d, p.getName());
 				}
 				event.setWillClose(true);
 			}
 		}, m);
-		
+
 		int c = 0;
-		for(String ac : aclasses.keySet()){
-			if(getConfig().isSet("config.kits." + ac + ".gui_item_id")){
+		for (String ac : aclasses.keySet()) {
+			if (getConfig().isSet("config.kits." + ac + ".gui_item_id")) {
 				iconm.setOption(c, new ItemStack(Material.getMaterial(getConfig().getInt("config.kits." + ac + ".gui_item_id"))), ac, m.getConfig().getString("config.kits." + ac + ".lore").replaceAll("&", "§"));
-			}else{
+			} else {
 				iconm.setOption(c, new ItemStack(Material.SLIME_BALL), ac, m.getConfig().getString("config.kits." + ac + ".lore").replaceAll("&", "§"));
 			}
-			
+
 			c++;
 		}
-		
+
 		iconm.open(Bukkit.getPlayerExact(p));
 	}
 
