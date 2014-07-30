@@ -1808,10 +1808,10 @@ public class Main extends JavaPlugin implements Listener {
 
 						objective.setDisplayName("§cC§3o§dl§5o§6r§1M§aa§2t§4c§eh!"); // <- ColorMatch
 
-						objective.getScore(Bukkit.getOfflinePlayer(" ")).setScore(5);
+						objective.getScore(Bukkit.getOfflinePlayer(" §8-  ")).setScore(5);
 						objective.getScore(Bukkit.getOfflinePlayer("§aArena")).setScore(4);
 						objective.getScore(Bukkit.getOfflinePlayer("§d" + arena)).setScore(3);
-						objective.getScore(Bukkit.getOfflinePlayer("  ")).setScore(2);
+						objective.getScore(Bukkit.getOfflinePlayer(" §8- ")).setScore(2);
 						objective.getScore(Bukkit.getOfflinePlayer("§aPlayers Left")).setScore(1);
 						objective.getScore(Bukkit.getOfflinePlayer(Integer.toString(count - lostcount) + "/" + Integer.toString(count))).setScore(0);
 
